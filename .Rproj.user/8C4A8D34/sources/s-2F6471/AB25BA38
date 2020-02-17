@@ -5,13 +5,15 @@
     "dirty" : false,
     "encoding" : "UTF-8",
     "folds" : "",
-    "hash" : "4212697863",
+    "hash" : "0",
     "id" : "AB25BA38",
     "lastKnownWriteTime" : 1581967793,
     "last_content_update" : 1581967793,
     "path" : "~/BATD/R/BATD_analyze.R",
     "project_path" : "R/BATD_analyze.R",
     "properties" : {
+        "cursorPosition" : "18,0",
+        "scrollLine" : "0"
     },
     "read_only" : false,
     "read_only_alternatives" : [
