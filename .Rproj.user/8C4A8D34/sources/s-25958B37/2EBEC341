@@ -5,15 +5,15 @@
     "dirty" : false,
     "encoding" : "UTF-8",
     "folds" : "",
-    "hash" : "3400024902",
+    "hash" : "0",
     "id" : "2EBEC341",
-    "lastKnownWriteTime" : 1582068324,
-    "last_content_update" : 1582068324940,
+    "lastKnownWriteTime" : 1582069057,
+    "last_content_update" : 1582069057374,
     "path" : "~/Github/BATD/R/BATD_extract_NF.R",
     "project_path" : "R/BATD_extract_NF.R",
     "properties" : {
-        "cursorPosition" : "115,97",
-        "scrollLine" : "90"
+        "cursorPosition" : "7,86",
+        "scrollLine" : "0"
     },
     "read_only" : false,
     "read_only_alternatives" : [

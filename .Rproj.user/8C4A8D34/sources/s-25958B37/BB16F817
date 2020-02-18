@@ -7,13 +7,13 @@
     "folds" : "",
     "hash" : "0",
     "id" : "BB16F817",
-    "lastKnownWriteTime" : 1582068404,
-    "last_content_update" : 1582068404227,
-    "path" : "~/Github/BATD/BATD Package guide.R",
-    "project_path" : "BATD Package guide.R",
+    "lastKnownWriteTime" : 1582069630,
+    "last_content_update" : 1582069630697,
+    "path" : "~/Github/BATD Developer testing script.R",
+    "project_path" : "../BATD Developer testing script.R",
     "properties" : {
-        "cursorPosition" : "61,16",
-        "scrollLine" : "31"
+        "cursorPosition" : "61,20",
+        "scrollLine" : "60"
     },
     "read_only" : false,
     "read_only_alternatives" : [

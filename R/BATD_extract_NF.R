@@ -16,6 +16,11 @@
 #' @export
 
 BATD_extract_NF <- function(list_of_filenames, Site){
+
+  #Trouble shooting
+  # list_of_filenames <- participants_from_ARBA3
+  # Site <- "ARBA3"
+
   '%ni%' <- Negate('%in%') #create the function for %not in%
   inputDirectory <- getwd()
   dir.create("output", showWarnings = FALSE) #set the wd to the folder where you wish to save the output data to
@@ -197,12 +202,19 @@ BATD_extract_NF <- function(list_of_filenames, Site){
     protocols_completed_more_than_once <- currentProtocol
     }
 
-    #For the protocols completed once ----
-    protocols_completed_once <- participantTactileData[participantTactileData$protocolName %in% protocols_completed_once,]
-    protocols_completed_once$sessions <- 1
+    #Only do if participants have protocols that they completed once
+    if(length(protocols_completed_once) != 0){
+      #For the protocols completed once ----
+      protocols_completed_once <- participantTactileData[participantTactileData$protocolName %in% protocols_completed_once,]
+      protocols_completed_once$sessions <- 1
 
-    #Recombimne the dataframes for protocols completed more than once and just once ----
-    allProtocolOutputs <- rbind(protocols_completed_more_than_once, protocols_completed_once)
+      #Recombimne the dataframes for protocols completed more than once and just once ----
+      allProtocolOutputs <- rbind(protocols_completed_more_than_once, protocols_completed_once)
+    } else {
+      allProtocolOutputs <- protocols_completed_more_than_once
+    }
+
+
 
 
 

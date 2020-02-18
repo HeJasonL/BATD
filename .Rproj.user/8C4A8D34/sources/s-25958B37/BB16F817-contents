@@ -55,12 +55,40 @@ BATD_plot_all(NF) #New format
 
 #Test of BATD for all the sites we've ever collected data from
 
-#Attempt to use the package on Toronto data ----
+#Testing on REPO project ----
+setwd("~/Dropbox/Documents/Data repository/Tactile Data/Raw/Old Format/JHU") #setwd to the folder containing all the folders which contain participant's performance
+participants_OF_list <- list.files(pattern = "-") #list the txt files containing participant's performance
+NF <- BATD_extract_OF(participants_NF_list[1], "JHU") #run BATD_extract_XX and assign the output to a dataframe
+BATD_analyze_all(NF)
+BATD_plot_all(NF) #New format
+
+#Testing on JHU OF projects ----
+setwd("~/Dropbox/Documents/Projects/Tactile reproducibility/Data/tac_repro_data_for_Jason") #setwd to the folder containing all the folders which contain participant's performance
+participants_OF_list <- list.files(pattern = "-") #list the txt files containing participant's performance
+OF <- BATD_extract_OF(participants_NF_list[1], "JHU") #run BATD_extract_XX and assign the output to a dataframe
+BATD_analyze_all(OF)
+BATD_plot_all(OF) #New format
+
+#Testing on KKI projects ----
+setwd("~/Dropbox/Documents/Data repository/Tactile Data/Raw/New Format/KKI") #setwd to the folder containing all the folders which contain participant's performance
+participants_NF_list <- list.files(pattern = "*.txt") #list the txt files containing participant's performance
+NF <- BATD_extract_NF(participants_NF_list[1], "KKI") #run BATD_extract_XX and assign the output to a dataframe
+BATD_analyze_all(NF)
+BATD_plot_all(NF) #New format
+
+#Testing on Toronto project ----
 setwd("~/Dropbox/Documents/Data repository/Tactile Data/Raw/New Format/Calgary")
 participants_NF_list <- list.files(pattern = ".txt") #list the txt files containing participant's performance
 NF <- BATD_extract_NF(participants_NF_list, "University of Calgary")
 BATD_analyze(NF)
 BATD_plot_all(NF)
+
+#Testing on ARBA project
+setwd("~/Dropbox/Documents/Data repository/Tactile Data/Raw/New Format/Toronto/ARBA3")
+participants_from_ARBA3 <- list.files(pattern = "POND-") #list the txt files containing participant's performance
+ARBA3 <- BATD_extract_NF(participants_from_ARBA3, "ARBA3")
+BATD_analyze(ARBA3)
+BATD_plot_all(ARBA3)
 
 
 
