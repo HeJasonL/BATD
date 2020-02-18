@@ -5,15 +5,15 @@
     "dirty" : false,
     "encoding" : "UTF-8",
     "folds" : "",
-    "hash" : "3693231547",
+    "hash" : "0",
     "id" : "778016B5",
     "lastKnownWriteTime" : 1581991494,
     "last_content_update" : 1581991494426,
     "path" : "~/Github/BATD/R/BATD_analyze_all.R",
     "project_path" : "R/BATD_analyze_all.R",
     "properties" : {
-        "cursorPosition" : "28,33",
-        "scrollLine" : "22"
+        "cursorPosition" : "28,34",
+        "scrollLine" : "7"
     },
     "read_only" : false,
     "read_only_alternatives" : [

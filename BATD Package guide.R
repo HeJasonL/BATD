@@ -40,7 +40,7 @@ OF <- BATD_extract_OF(participants_OF_list, "KKI") #run BATD_extract_XX and assi
 BATD_analyze_all(OF)
 
 #New Format
-setwd("~/Dropbox/Documents/Data repository/Tactile Data/Raw/New Format/CCH") #setwd to the folder containing all the folders which contain participant's performance
+setwd("") #setwd to the folder containing all the folders which contain participant's performance
 participants_NF_list <- list.files(pattern = "-") #list the txt files containing participant's performance
 NF <- BATD_extract_NF(participants_NF_list[1:3], "Site") #run BATD_extract_XX and assign the output to a dataframe
 BATD_analyze_all(NF)
@@ -49,7 +49,7 @@ setwd("~/Dropbox/Documents/Data repository/Tactile Data/Raw/New Format/Toronto/A
 participants_from_ARBA1 <- list.files(pattern = "-") #list the txt files containing participant's performance
 ARBA1 <- BATD_extract_NF(participants_from_ARBA1[1:3], "ARBA1")
 BATD_analyze_all(ARBA1)
-ARBA1$id
+
 ## STEP 2: BATD_analyze_all for old and new formats ----
 BATD_analyze_all(OF) #Old format
 BATD_analyze_all(NF) #New format
@@ -59,10 +59,6 @@ BATD_plot_all(OF) #Old format
 BATD_plot_all(NF) #New format
 
 
-setwd("~/Dropbox/Documents/Data repository/Tactile Data/Raw/New Format/Toronto/ARBA1")
-participants_from_ARBA1 <- list.files(pattern = "-") #list the txt files containing participant's performance
-ARBA1 <- BATD_extract_NF(participants_from_ARBA1, "ARBA1")
-BATD_plot_all(ARBA1)
 
 
 
