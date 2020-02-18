@@ -13,8 +13,9 @@
 #' @export
 
 BATD_analyze <- function(dataframe){
-  '%ni%' <- Negate('%in%') #create the function for %not in%
+
   library(dplyr) #for some reason I can't call 'lead' or 'lag' without reading in the dplyr library
+  '%ni%' <- Negate('%in%') #create the function for %not in%
 
     data <- dataframe
     data <- data[!is.na(data$protocolName),]
@@ -42,24 +43,10 @@ BATD_analyze <- function(dataframe){
       }
 
         sessionData <- protocolData
-
-        #Change performance column values to numeric ----
-        sessionData <- sessionData[!is.na(sessionData$trialNumber),] #First, remove any rows where there are more trial numbers than you would reasonably expect
+        sessionData <- sessionData[!is.na(sessionData$trialNumber),]
         sessionData$responseTime <- as.numeric(as.character(sessionData$responseTime)) #turn responseTime to numeric
         sessionData$correctResponse <- as.numeric(as.character(sessionData$correctResponse)) #turn correctResponse to numeric
         sessionData$value <- as.numeric(as.character(sessionData$value)) #turn string variables into numeric
-
-
-        numberofPracticeTrials <- as.numeric(as.character(sessionData$numberofPracticeTrials[1])) + 1 #adding one so that the trials start AFTER the n of practice trials
-
-        #here we remove the practice trials if the n > 10, this is because some sites actually ran a whole protocol as a practice, rather than the first n-numnber of trials (usually 3)
-        #If prctice trials were ran as a whole protocol, thye are just treated as a protocol
-        if(numberofPracticeTrials < 9 ){
-          sessionData <- sessionData[numberofPracticeTrials:nrow(sessionData),] #remove practice trials
-          sessionData$trialNumber <- 1:nrow(sessionData) #reset trial numbers
-        }
-
-        sessionData <- sessionData[!is.na(sessionData$response),] #some protocols had a last trial where a response was not made, this response is not included
 
         #General variables ----
         medianRT <- median(sessionData$responseTime, na.rm = TRUE)
@@ -126,12 +113,6 @@ BATD_analyze <- function(dataframe){
       }
 
     participant_output <- do.call(cbind, analyzed_protocols_list)
-
-    #Convert the analyzed data to numeric
-    participant_output <- suppressWarnings(as.data.frame(participant_output))
-    participant_output[,1:ncol(participant_output)] <- suppressWarnings(sapply(participant_output[,1:ncol(participant_output)], suppressWarnings(as.character)))
-    participant_output[,1:ncol(participant_output)] <- suppressWarnings(sapply(participant_output[,1:ncol(participant_output)], suppressWarnings(as.numeric)))
-
     participant_output <- cbind(participant_details, participant_output)
 
     return(participant_output)

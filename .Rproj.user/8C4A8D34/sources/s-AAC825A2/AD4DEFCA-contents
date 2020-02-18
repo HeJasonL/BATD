@@ -13,19 +13,19 @@
 
 BATD_plot_all <- function(extracted_Data){
 
-  #extracted_Data<-  NF
-  extracted_Data <- extracted_Data[!is.na(extracted_Data$id),]
   uniqueParticipants <- unique(extracted_Data$id)
   uniqueParticipants <- uniqueParticipants[!is.na(uniqueParticipants)]
   participants_outPut_list <- list()
 
   for(x in 1:length(uniqueParticipants)){
-#x <- 1
+
     data <- extracted_Data[extracted_Data$id==uniqueParticipants[x],]
     protocolsCompleted <- as.character(unique(data$protocolName))
     print(paste0("Now plotting participant:", uniqueParticipants[x]))
     BATD_plot(data)
+
   }
+
 
 }
 

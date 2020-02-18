@@ -7,18 +7,18 @@
     "folds" : "",
     "hash" : "0",
     "id" : "BB16F817",
-    "lastKnownWriteTime" : 1582050334,
-    "last_content_update" : 1582050334962,
+    "lastKnownWriteTime" : 1582068404,
+    "last_content_update" : 1582068404227,
     "path" : "~/Github/BATD/BATD Package guide.R",
     "project_path" : "BATD Package guide.R",
     "properties" : {
-        "cursorPosition" : "51,56",
-        "scrollLine" : "27"
+        "cursorPosition" : "61,16",
+        "scrollLine" : "31"
     },
     "read_only" : false,
     "read_only_alternatives" : [
     ],
-    "relative_order" : 3,
+    "relative_order" : 1,
     "source_on_save" : false,
     "source_window" : "",
     "type" : "r_source"

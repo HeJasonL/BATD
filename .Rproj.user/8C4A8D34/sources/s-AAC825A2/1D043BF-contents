@@ -111,10 +111,8 @@ BATD_extract_NF <- function(list_of_filenames, Site){
     participantTactileData <- do.call(rbind.data.frame, ProtocolOutputList)
 
     #Change correctResponse to a 0 or 1 numeric (currently its in true or false, I just want to standardise this between the old and new format, also string descriptions are not useful here)
-    participantTactileData$correctResponse  <- as.character(participantTactileData$correctResponse)
-    participantTactileData$correctResponse[participantTactileData$correctResponse=="true"] <- "1"
-    participantTactileData$correctResponse[participantTactileData$correctResponse=="false"] <- "0"
-
+    participantTactileData$correctResponse <- suppressWarnings(as.numeric(participantTactileData$correctResponse)) #make correctResponse numeric, making true = 2, and false = 1
+    participantTactileData$correctResponse <- participantTactileData$correctResponse - 1 #subtract 1, so that 1 = correct, 0 = incorrecty
 
     #Label protocols with names (note that this is done in a specific order since sometimes protocols share numeric codes ----
     #Note, there are far more protocols in the new format than the old format, hence the greater number of protocol numbers

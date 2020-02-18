@@ -1,0 +1,25 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1582052577688.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "DE71F908",
+    "lastKnownWriteTime" : 1582055293,
+    "last_content_update" : 1582055293460,
+    "path" : "~/Github/BATD/R/BATD_plot_all.R",
+    "project_path" : "R/BATD_plot_all.R",
+    "properties" : {
+        "cursorPosition" : "27,3",
+        "scrollLine" : "0"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 5,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

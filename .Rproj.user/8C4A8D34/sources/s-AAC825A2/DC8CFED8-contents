@@ -16,7 +16,8 @@
 #' @export
 
 BATD_extract_NF <- function(list_of_filenames, Site){
-  '%ni%' <- Negate('%in%') #create the function for %not in%
+  list_of_filenames <- participants_OF_list
+  Site <- "University of Calgary"
   inputDirectory <- getwd()
   dir.create("output", showWarnings = FALSE) #set the wd to the folder where you wish to save the output data to
   outputDirectory <- paste0(inputDirectory,"/output") #automatically creates a folder in that directory named 'output' - if you already have a folder named output, ignore this code.
@@ -111,10 +112,8 @@ BATD_extract_NF <- function(list_of_filenames, Site){
     participantTactileData <- do.call(rbind.data.frame, ProtocolOutputList)
 
     #Change correctResponse to a 0 or 1 numeric (currently its in true or false, I just want to standardise this between the old and new format, also string descriptions are not useful here)
-    participantTactileData$correctResponse  <- as.character(participantTactileData$correctResponse)
-    participantTactileData$correctResponse[participantTactileData$correctResponse=="true"] <- "1"
-    participantTactileData$correctResponse[participantTactileData$correctResponse=="false"] <- "0"
-
+    participantTactileData$correctResponse <- suppressWarnings(as.numeric(participantTactileData$correctResponse)) #make correctResponse numeric, making true = 2, and false = 1
+    participantTactileData$correctResponse <- participantTactileData$correctResponse - 1 #subtract 1, so that 1 = correct, 0 = incorrecty
 
     #Label protocols with names (note that this is done in a specific order since sometimes protocols share numeric codes ----
     #Note, there are far more protocols in the new format than the old format, hence the greater number of protocol numbers
@@ -158,53 +157,60 @@ BATD_extract_NF <- function(list_of_filenames, Site){
     #Duration Discrimination
     participantTactileData$protocolName[participantTactileData$protocol==950] <- "Duration Discrimination"
 
-    #University of Calgary patch
+    #University of Calgary patch (temporary fix)
     if(Site=="University of Calgary"){
       participantTactileData$protocolName[participantTactileData$protocol==900] <- "Sequential Amplitude Discrimination"
       participantTactileData$protocolName[participantTactileData$protocol==905] <- "Simultaneous Amplitude Discrimination"
     }
 
     #Accounting for session ----------------
-    #Where this code (BATD_extract_NF) differs from the old format (BATD_extract_OF) is that sessions are not accounted for within the same folder, but rather, are accounted for posthoc (i.e., after all the data for a given participant is  combined)
+    #Where this code differs from the old format is that sessions are not accounted for within the same folder, but rather, are accounted for posthoc (i.e., after all the data for a given participant is  combined)
     #In the old format, a participant who does the same session twice will have data stored in the same folder, whereas in the new format, this was not the case (at least at JHU/KKI)
     #There are some cases where participants completed the same protocol twice, we need to be able to differentiate whether it was their first or second attempt
     #The attempts are always in chronological order (again, at least at JHU and KKI)
     #This code below is really inefficient, and was admittedly done in a hurry, this will be fixed in the next version update (nonetheless, it works)
 
-    #For the protocols completed MORE than once ----
-    sessionsCompleted_by_protocol <- table(participantTactileData$protocolName[participantTactileData$trialNumber==1]) #name of protocols completed
-    protocols_completed_more_than_once <- names(sessionsCompleted_by_protocol[sessionsCompleted_by_protocol>1]) #names of protocols completed more than once
-    protocols_completed_once <- names(sessionsCompleted_by_protocol[names(sessionsCompleted_by_protocol) %ni% protocols_completed_more_than_once]) #names of protocols completed once
 
-    participantTactileData_with_protocols_completed_more_than_once <- participantTactileData[participantTactileData$protocolName %in% protocols_completed_more_than_once,]
-    names_of_protcols_completed_more_than_once <- unique(participantTactileData_with_protocols_completed_more_than_once$protocolName)
+    Table <- as.data.frame(table(participantTactileData$protocolName)) #Create a table denoting the number of trials for each protocol completed
+    Table <- Table[Table$Freq>25,] #Identify any of the protocols that have more than 25 trials (currently speaking, these must be protocols where the participant did it twice, since no protocol has more than 25 trials)
 
-    #This for loop identifies the protocols that have been completed more than once, identifies the number of times that protocol was completed and then assigns the column sessions to denote this ----
-    for(s in 1:length(names_of_protcols_completed_more_than_once)){
-    currentProtocol <- participantTactileData[participantTactileData$protocolName == names_of_protcols_completed_more_than_once[s],] #subset to the protocol completed more than once
-    number_of_times_completed <- sessionsCompleted_by_protocol[names(sessionsCompleted_by_protocol) == names_of_protcols_completed_more_than_once[s]] #identify the number of times that protocol was completed
-    ntrials_of_currentProtocol_by_session <- nrow(currentProtocol)/number_of_times_completed #identifies the number of rows of the protocol that was completed (*assumes that protocols repeated had an equal number of trials*)
+    #if the number of rows of Table is greater than 0 (i.e., if there are protocols that were completed more than once, then we want to subset those protocols and give them session labels (1: number of sessions)
+    if(nrow(Table)>0){
+      ProtocolsAttemptedMoreThanOnce <- list() #create a list to store the output from protocols that were completed more than once
 
-    #Within the current loop, a dataframe is created printing a value (n) by the number of trials that were completed and then saves it in a list
-    templist <- list() #create a temporary list outside of the loop
-    for(n in 1:number_of_times_completed){ #for 1 : the number of times a protocol was completed
-    templist[[n]] <- as.data.frame(replicate(ntrials_of_currentProtocol_by_session, n))#create a column stating session 'n' by the number of trials completed
+      #For all the protocols that were completed more than once, label sessions accordingly
+      for(i in 1:length(Table$Var1)){
+        temp <- participantTactileData[participantTactileData$protocolName %in% Table$Var1,] #narrow dataframe to those completed more than once
+        temp <- temp[temp$protocolName==Table$Var1[i],] #split off the nth protocol that was completed more than once (denoted by "i)
+        sessions <- which(temp$trialNumber==1) #identify the start of the protocol (trial number one)
+        list <- list() #create an external list
+        for (s in 1:length(sessions)){ #for the given the number of attempts or 'sessions'
+          if(is.na(sessions[2])){
+            sessions[2] <- 1
+          }else{
+            triallength <- sessions[2] - sessions[1] #identify the trial length
+          }
+          tempo <- temp[sessions[s]:(sessions[s]+triallength),] #here it is just,
+          tempo <- as.data.frame(tempo)[1:triallength,] #convert to dataframe and remove last row (it's ane extra row, unsure why)
+          tempo$session <- s #label the session number as 's', which updates every loop
+          list[[s]] <- tempo #put the reduced and labelled session into a list
+        }
+        temp <- data.table::rbindlist(list) #row bind the list - adding all the sessions of the same protocol together
+        ProtocolsAttemptedMoreThanOnce[[i]] <- temp #put the rowbinded sessions into this list
+      }
+      moreThanOnce <- do.call(rbind.data.frame, ProtocolsAttemptedMoreThanOnce) #rowbind all the sessions that were completed more than once and save them as a dataframe
     }
 
-    sessions <- dplyr::bind_rows(templist) #the columns from the above for loop are then joined into a single column
-    names(sessions) <- c("sessions") #which we name as session
-    currentProtocol <- cbind(currentProtocol, sessions) #and join to the original dataframe we had called currentProtocol
-    protocols_completed_more_than_once <- currentProtocol
+    once <- participantTactileData[!participantTactileData$protocolName %in% Table$Var1,] #These are the protocols which have NOT been completed more than once
+
+    #if there ARE protocols that have been completed more than once (opposite to the above), then we want to give them a session label of 1
+    if(nrow(once) > 1){once$session <- 1}
+
+    if(exists("moreThanOnce")){
+      allProtocolOutputs <- as.data.frame(plyr::rbind.fill(moreThanOnce, once)) #combine sessions completed more than once with those completed just once
+    } else {
+      allProtocolOutputs <- once
     }
-
-    #For the protocols completed once ----
-    protocols_completed_once <- participantTactileData[participantTactileData$protocolName %in% protocols_completed_once,]
-    protocols_completed_once$sessions <- 1
-
-    #Recombimne the dataframes for protocols completed more than once and just once ----
-    allProtocolOutputs <- rbind(protocols_completed_more_than_once, protocols_completed_once)
-
-
 
     #Change performance column values to numeric ----
     allProtocolOutputs <- suppressWarnings(as.data.frame(allProtocolOutputs))

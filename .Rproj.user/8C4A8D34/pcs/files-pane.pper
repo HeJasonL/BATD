@@ -1,6 +1,10 @@
 {
-    "path" : "~/Github/BATD/R",
+    "path" : "~/Dropbox/Documents/Data repository/Tactile Data/Raw/New Format/Calgary/Plots",
     "sortOrder" : [
+        {
+            "ascending" : false,
+            "columnIndex" : 4
+        },
         {
             "ascending" : true,
             "columnIndex" : 2

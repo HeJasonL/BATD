@@ -49,18 +49,6 @@ BATD_analyze <- function(dataframe){
         sessionData$correctResponse <- as.numeric(as.character(sessionData$correctResponse)) #turn correctResponse to numeric
         sessionData$value <- as.numeric(as.character(sessionData$value)) #turn string variables into numeric
 
-
-        numberofPracticeTrials <- as.numeric(as.character(sessionData$numberofPracticeTrials[1])) + 1 #adding one so that the trials start AFTER the n of practice trials
-
-        #here we remove the practice trials if the n > 10, this is because some sites actually ran a whole protocol as a practice, rather than the first n-numnber of trials (usually 3)
-        #If prctice trials were ran as a whole protocol, thye are just treated as a protocol
-        if(numberofPracticeTrials < 9 ){
-          sessionData <- sessionData[numberofPracticeTrials:nrow(sessionData),] #remove practice trials
-          sessionData$trialNumber <- 1:nrow(sessionData) #reset trial numbers
-        }
-
-        sessionData <- sessionData[!is.na(sessionData$response),] #some protocols had a last trial where a response was not made, this response is not included
-
         #General variables ----
         medianRT <- median(sessionData$responseTime, na.rm = TRUE)
         sdRT <- sd(sessionData$responseTime, na.rm = TRUE)

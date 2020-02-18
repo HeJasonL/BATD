@@ -29,25 +29,21 @@ library(BATD)
 #?BATD_plot #used to plot a single dataframe for a single participant produced by BATD_extract_XX
 #?BATD_analyze #used to analyze a single dataframe for a single participant produced by BATD_extract_XX
 
-devtools::install_github("HeJasonL/BATD", force = TRUE)
-library(BATD)
 ## STEP 1: BATD_extract for both old and new formats ----
 #Old Format
-setwd("")#setwd to the folder containing all the raw .txt files
+setwd("~/Dropbox/Documents/Data repository/Tactile Data/Raw/Old Format/KKI")#setwd to the folder containing all the raw .txt files
 participants_OF_list <- list.files(pattern = "-") #list the txt files containing participant's performance
-OF <- BATD_extract_OF(participants_OF_list[1:2], "KKI") #run BATD_extract_XX and assign the output to a dataframe
+OF <- BATD_extract_OF(participants_OF_list[1], "KKI") #run BATD_extract_XX and assign the output to a dataframe
 BATD_analyze_all(OF)
+BATD_plot_all(OF) #New format
 
 #New Format
-setwd("") #setwd to the folder containing all the folders which contain participant's performance
-participants_NF_list <- list.files(pattern = "-") #list the txt files containing participant's performance
-NF <- BATD_extract_NF(participants_NF_list[1:3], "Site") #run BATD_extract_XX and assign the output to a dataframe
+setwd("~/Dropbox/Documents/Data repository/Tactile Data/Raw/New Format/KKI") #setwd to the folder containing all the folders which contain participant's performance
+participants_NF_list <- list.files(pattern = "*.txt") #list the txt files containing participant's performance
+NF <- BATD_extract_NF(participants_NF_list[1], "KKI") #run BATD_extract_XX and assign the output to a dataframe
+NF$correctResponse
 BATD_analyze_all(NF)
-
-setwd("")
-participants_from_ARBA1 <- list.files(pattern = "-") #list the txt files containing participant's performance
-ARBA1 <- BATD_extract_NF(participants_from_ARBA1[1:3], "ARBA1")
-BATD_analyze_all(ARBA1)
+BATD_plot(NF) #New format
 
 ## STEP 2: BATD_analyze_all for old and new formats ----
 BATD_analyze_all(OF) #Old format
@@ -57,7 +53,14 @@ BATD_analyze_all(NF) #New format
 BATD_plot_all(OF) #Old format
 BATD_plot_all(NF) #New format
 
+#Test of BATD for all the sites we've ever collected data from
 
+#Attempt to use the package on Toronto data ----
+setwd("~/Dropbox/Documents/Data repository/Tactile Data/Raw/New Format/Calgary")
+participants_NF_list <- list.files(pattern = ".txt") #list the txt files containing participant's performance
+NF <- BATD_extract_NF(participants_NF_list, "University of Calgary")
+BATD_analyze(NF)
+BATD_plot_all(NF)
 
 
 
