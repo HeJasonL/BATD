@@ -7,13 +7,13 @@
     "folds" : "40|24|42|6|\n82|75|84|8|\n85|59|87|8|\n88|31|91|0|\n",
     "hash" : "0",
     "id" : "CF400974",
-    "lastKnownWriteTime" : 1582042653,
-    "last_content_update" : 1582042653688,
+    "lastKnownWriteTime" : 1582050303,
+    "last_content_update" : 1582050303861,
     "path" : "~/Github/BATD/R/BATD_analyze.R",
     "project_path" : "R/BATD_analyze.R",
     "properties" : {
-        "cursorPosition" : "30,60",
-        "scrollLine" : "14"
+        "cursorPosition" : "104,74",
+        "scrollLine" : "73"
     },
     "read_only" : false,
     "read_only_alternatives" : [

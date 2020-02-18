@@ -12,7 +12,8 @@
 #' @export
 
 BATD_plot_all <- function(extracted_Data){
-
+  #extracted_Data<-  ARBA1
+  extracted_Data <- extracted_Data[!is.na(extracted_Data$id),]
   uniqueParticipants <- unique(extracted_Data$id)
   uniqueParticipants <- uniqueParticipants[!is.na(uniqueParticipants)]
   participants_outPut_list <- list()
@@ -23,9 +24,7 @@ BATD_plot_all <- function(extracted_Data){
     protocolsCompleted <- as.character(unique(data$protocolName))
     print(paste0("Now plotting participant:", uniqueParticipants[x]))
     BATD_plot(data)
-
   }
-
 
 }
 

@@ -92,21 +92,21 @@ BATD_analyze <- function(dataframe){
 
         #Add a tag to the end of the column names to specify which protocol the outPut is from ----
         tag <- ifelse(protocol=="Simple Reaction Time", "_SRT",
-                      ifelse(protocol=="Choice Reaction Time", "_CRT",
-                             ifelse(protocol=="Static Detection Threshold", "_SDT",
-                                    ifelse(protocol=="Static Detection Threshold with Adaptation ISI 30", "_SDT30",
-                                           ifelse(protocol=="Static Detection Threshold with Adaptation ISI 100", "_SDT100",
-                                                  ifelse(protocol=="Dynamic Detection Threshold", "_DDT",
-                                                         ifelse(protocol=="Amplitude Discrimination Threshold without Adaptation", "_ADT",
-                                                                ifelse(protocol=="Amplitude Discrimination with Single Site Adaptation", "_ADTssa",
-                                                                       ifelse(protocol=="Amplitude Discrimination with Dual Site Adaptation", "_ADTdsa",
-                                                                              ifelse(protocol=="Simultaneous Frequency Discrimination", "_SMFD",
-                                                                                     ifelse(protocol=="Sequential Frequency Discrimination", "_SQFD",
-                                                                                            ifelse(protocol=="Simultaneous Amplitude Discrimination", "_SMAD",
-                                                                                                   ifelse(protocol=="Sequential Amplitude Discrimination", "_SQAD",
-                                                                                                          ifelse(protocol=="Temporal Order Judgement", "_TOJ",
-                                                                                                                 ifelse(protocol=="Temporal Order Judgement with Carrier", "_TOJwc",
-                                                                                                                        ifelse(protocol=="Duration Discrimination", "_DD", NA))))))))))))))))
+        ifelse(protocol=="Choice Reaction Time", "_CRT",
+        ifelse(protocol=="Static Detection Threshold", "_SDT",
+        ifelse(protocol=="Static Detection Threshold with Adaptation ISI 30", "_SDT30",
+        ifelse(protocol=="Static Detection Threshold with Adaptation ISI 100", "_SDT100",
+        ifelse(protocol=="Dynamic Detection Threshold", "_DDT",
+        ifelse(protocol=="Amplitude Discrimination Threshold without Adaptation", "_ADT",
+        ifelse(protocol=="Amplitude Discrimination with Single Site Adaptation", "_ADTssa",
+        ifelse(protocol=="Amplitude Discrimination with Dual Site Adaptation", "_ADTdsa",
+        ifelse(protocol=="Simultaneous Frequency Discrimination", "_SMFD",
+        ifelse(protocol=="Sequential Frequency Discrimination", "_SQFD",
+        ifelse(protocol=="Simultaneous Amplitude Discrimination", "_SMAD",
+        ifelse(protocol=="Sequential Amplitude Discrimination", "_SQAD",
+        ifelse(protocol=="Temporal Order Judgement", "_TOJ",
+        ifelse(protocol=="Temporal Order Judgement with Carrier", "_TOJwc",
+        ifelse(protocol=="Duration Discrimination", "_DD", NA))))))))))))))))
         colnames(outPut) <- paste0(colnames(outPut), tag)
 
         analyzed_protocols_list[[p]] <- outPut

@@ -2,12 +2,9 @@
 
 #Section 1: Introduction and setup ----
   #'Note that currently, you will have to set your own working directories, but I will eventually create 'dummy' working directories that you can read off github
-  #'Install the package devtools first by removing the front hashtag, then initiate the library
-  #'Once devtools has been installed and initiated, remove the hashtag from the line starting with 'install_github...' and install the latest version of the package
-  #'Initiate the BATD library and then follow the rest of the steps below - see section 2
+  #'Install and initiate the BATD library and then follow the rest of the steps below - see section 2
 
 #Setup ----
-#install.packages("devtools") #need to install the packages devtools first if this doesn't already exist (allows for install_github)
 devtools::install_github("HeJasonL/BATD", force = TRUE) #install the latest version of the package
 library(BATD)
 
@@ -36,9 +33,9 @@ devtools::install_github("HeJasonL/BATD", force = TRUE)
 library(BATD)
 ## STEP 1: BATD_extract for both old and new formats ----
 #Old Format
-setwd("") #setwd to the folder containing all the raw .txt files
+setwd("")#setwd to the folder containing all the raw .txt files
 participants_OF_list <- list.files(pattern = "-") #list the txt files containing participant's performance
-OF <- BATD_extract_OF(participants_OF_list, "KKI") #run BATD_extract_XX and assign the output to a dataframe
+OF <- BATD_extract_OF(participants_OF_list[1:2], "KKI") #run BATD_extract_XX and assign the output to a dataframe
 BATD_analyze_all(OF)
 
 #New Format
@@ -47,7 +44,7 @@ participants_NF_list <- list.files(pattern = "-") #list the txt files containing
 NF <- BATD_extract_NF(participants_NF_list[1:3], "Site") #run BATD_extract_XX and assign the output to a dataframe
 BATD_analyze_all(NF)
 
-setwd("~/Dropbox/Documents/Data repository/Tactile Data/Raw/New Format/Toronto/ARBA1")
+setwd("")
 participants_from_ARBA1 <- list.files(pattern = "-") #list the txt files containing participant's performance
 ARBA1 <- BATD_extract_NF(participants_from_ARBA1[1:3], "ARBA1")
 BATD_analyze_all(ARBA1)

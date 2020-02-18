@@ -46,7 +46,7 @@ BATD_analyze_all <- function(dataframe){
   }
 
   all <- plyr::rbind.fill(participants_outPut_list)
-
+  all <- all[!is.na(all$id),]
   # baseDirectory <- getwd()
   # dir.create("Combined Data", showWarnings = FALSE)
   # setwd(paste0(getwd(),"/Combined Data"))
