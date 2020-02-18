@@ -1,24 +1,24 @@
 {
     "collab_server" : "",
     "contents" : "",
-    "created" : 1582067745003.000,
+    "created" : 1582070080294.000,
     "dirty" : false,
     "encoding" : "UTF-8",
     "folds" : "",
-    "hash" : "0",
-    "id" : "2EBEC341",
-    "lastKnownWriteTime" : 1582069057,
-    "last_content_update" : 1582069057374,
+    "hash" : "3908751512",
+    "id" : "1B8F1CB",
+    "lastKnownWriteTime" : 1582070255,
+    "last_content_update" : 1582070255436,
     "path" : "~/Github/BATD/R/BATD_extract_NF.R",
     "project_path" : "R/BATD_extract_NF.R",
     "properties" : {
-        "cursorPosition" : "7,86",
-        "scrollLine" : "0"
+        "cursorPosition" : "196,0",
+        "scrollLine" : "179"
     },
     "read_only" : false,
     "read_only_alternatives" : [
     ],
-    "relative_order" : 5,
+    "relative_order" : 3,
     "source_on_save" : false,
     "source_window" : "",
     "type" : "r_source"
