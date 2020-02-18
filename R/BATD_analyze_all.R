@@ -30,11 +30,11 @@ BATD_analyze_all <- function(dataframe){
     participants_outPut_list[[x]] <- as.data.frame(BATD_analyze(data))
 
     #Extract participant details (not yet integrated) -----
-    id <- data$id[1]
-    race <- data$race[1]
-    gender <- data$gender[1]
-    handedness <- data$handedness[1]
-    birthYear <- data$birthYear[1]
+    id <- data$id[x]
+    race <- data$race[x]
+    gender <- data$gender[x]
+    handedness <- data$handedness[x]
+    birthYear <- data$birthYear[x]
     participantDetails <- cbind.data.frame(id, race, gender, handedness, birthYear)
     participants_detail_list[[x]] <- participantDetails
   }
@@ -42,7 +42,9 @@ BATD_analyze_all <- function(dataframe){
   allperformance <- plyr::rbind.fill(participants_outPut_list)
   alldetails <- plyr::rbind.fill(participants_detail_list)
 
-  all <- rowr::cbind.fill(alldetails, allperformance)
+ #This is a work around cbind.fill (since rowr has been deprecated), it just replicates the 'alldetails' frame to match the nrow of allperformance
+ n <- nrow(allperformance)/nrow(alldetails)
+ all <- cbind(do.call("rbind", replicate(n, alldetails, simplify = FALSE)), allperformance)
 
   # baseDirectory <- getwd()
   # dir.create("Combined Data", showWarnings = FALSE)

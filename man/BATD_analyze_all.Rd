@@ -14,9 +14,9 @@ like BATD_analyze will return a dataframe with a single row, containing the perf
 However, BATD_analyze_all will return a dataframe with multiple rows, referring to each participant in the dataframe entered, separated by sessions if they completed multiple sessions.
 }
 \description{
-Analyze the extracted data from BATD_extract_NF or BATD_extract_OF for multiple participants. This function is practically the same as BATD_analyze, but applies it to multiple participants within a for loop.
-Over and above BATD_analyze, BATD_analyze_all also appends information about the participant that completed the protocol, as well as parameters of the protocol itself.
-We recommend users to always use BATD_analyze_all, even for single participants.
+Analyze the extracted data from "BATD_extract_NF" or "BATD_extract_OF" for multiple participants. This function is practically the same as "BATD_analyze", but applies it to multiple participants within a for loop.
+Over and above "BATD_analyze", "BATD_analyze_all" also appends information about the participant that completed the protocol, as well as parameters of the protocol itself.
+For this reason, we recommend users to always use BATD_analyze_all, even for single participants.
 }
 \examples{
 Examples are currently NA

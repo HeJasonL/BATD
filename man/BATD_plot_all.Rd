@@ -13,8 +13,8 @@ BATD_plot_all(extracted_Data)
 Factor variable.
 }
 \description{
-Plot the extracted data from BATD_extract_NF or BATD_extract_OF for multiple participants. This function is practically the same as BATD_analyze, but applies it to multiple participants within a for loop.
-We recommend users to always use BATD_plot_all, even for single participants.
+Plot the extracted data from "BATD_extract_NF" or "BATD_extract_OF" for multiple participants. This function is practically the same as BATD_analyze, but applies it to multiple participants within a for loop.
+We recommend users to always use "BATD_plot_all", even for single participants.
 }
 \examples{
 

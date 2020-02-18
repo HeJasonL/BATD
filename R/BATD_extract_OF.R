@@ -53,14 +53,14 @@ BATD_extract_OF <- function(list_of_filenames, Site){
                         for(s in 1:length(protocolOutputs)){ #The following is nested in a for loop because some participants may have completed a given protocol more than once (s stands for sesson here)
                         output <- read.csv(protocolOutputs[s], header = FALSE, sep = "\t") #read in the current protocol for the current session (s), and assign it to a dataframe named output
 
-                    # (1) Extract the participant details ----
-                    id <- as.character(output$V2[output$V1=="Subject_Number"])
-                    race <- as.character(output$V2[output$V1=="Race"])
-                    gender <- as.character(output$V2[output$V1=="Gender"])
-                    handedness <- as.character(output$V2[output$V1=="Handedness"])
-                    birthYear <- as.character(output$V2[output$V1=="Birthdate"])
-                    date <- gsub("/","-",as.character(output$V2[output$V1=="Date"]))
-                    participantDetails <- as.data.frame(cbind(id, date, race, gender, handedness, birthYear)) #Combine participant details into a dataframe
+                        # (1) Extract the participant details ----
+                        id <- as.character(output$V2[output$V1=="Subject_Number"])
+                        race <- as.character(output$V2[output$V1=="Race"])
+                        gender <- as.character(output$V2[output$V1=="Gender"])
+                        handedness <- as.character(output$V2[output$V1=="Handedness"])
+                        birthYear <- as.character(output$V2[output$V1=="Birthdate"])
+                        date <- gsub("/","-",as.character(output$V2[output$V1=="Date"]))
+                        participantDetails <- as.data.frame(cbind(id, date, race, gender, handedness, birthYear)) #Combine participant details into a dataframe
 
 
                         #adjust the participant details so the strings line up with how they are referred to in the new format
