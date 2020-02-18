@@ -30,13 +30,12 @@ BATD_analyze <- function(dataframe){
       #Basic cleaning of dataframe ----
       protocol <- protocolsCompleted[p]
       protocolData <- data[data$protocolName==protocolsCompleted[p],] #Subset to relevant protocol
-      sessions <- c(1:unique(protocolData$session)) #identify how many sessions were completed for the nth protocol [might need future adjustment]
-
+      sessions <- suppressWarnings(c(1:unique(protocolData$session))) #identify how many sessions were completed for the nth protocol [might need future adjustment]
       sessions_list <- list()
 
-      for(s in 1:length(sessions)){
-        sessionData <- protocolData[protocolData$session == s,]
-        sessionData <- sessionData
+      # for(s in 1:length(sessions)){
+      #   sessionData <- protocolData[protocolData$session == s,]
+        sessionData <- protocolData
         sessionData <- sessionData[!is.na(sessionData$trialNumber),]
         sessionData$responseTime <- as.numeric(as.character(sessionData$responseTime)) #turn responseTime to numeric
         sessionData$correctResponse <- as.numeric(as.character(sessionData$correctResponse)) #turn correctResponse to numeric
@@ -106,15 +105,16 @@ BATD_analyze <- function(dataframe){
 
 
         #Store the output for the given session----
-        sessions_list[[s]] <- outPut
-      }
-
-      sessionsCombined <-  as.data.frame(do.call(rbind, sessions_list)) #rowbind the session(s)
-      analyzed_protocols_list[[p]] <- sessionsCombined
+      #   sessions_list[[s]] <- outPut
+      # }
+      #
+      # sessionsCombined <-  as.data.frame(do.call(rbind, sessions_list)) #rowbind the session(s)
+      # analyzed_protocols_list[[p]] <- sessionsCombined
+        analyzed_protocols_list[[p]] <- as.data.frame(outPut)
 
     }
 
-    participant_output <- do.call(rowr::cbind.fill, c(analyzed_protocols_list, fill = NA))
+    participant_output <- do.call(cbind, analyzed_protocols_list)
     participant_output$session <- 1:nrow(participant_output)
 
     return(participant_output)
