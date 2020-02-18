@@ -15,7 +15,6 @@
 #' @export
 
 BATD_analyze_all <- function(dataframe){
-
   uniqueParticipants <- unique(dataframe$id)
   uniqueParticipants <- uniqueParticipants[!is.na(uniqueParticipants)]
 
@@ -24,28 +23,29 @@ BATD_analyze_all <- function(dataframe){
 
   for(x in 1:length(uniqueParticipants)){
 
-    #Analyze performance data
-    data <- dataframe[dataframe$id==uniqueParticipants[x],]
-    data <- data[!is.na(data$id),]
-    protocolsCompleted <- as.character(unique(data$protocolName))
-    participants_outPut_list[[x]] <- as.data.frame(BATD_analyze(data))
+    #subset by participant ----
+    data <- dataframe[dataframe$id==uniqueParticipants[x],] #Subset to the nth participant
+    data <- data[!is.na(data$id),] #remove rows where the id is NA (an old fix that I'm afraid to remove)
 
-    #Extract participant details (not yet integrated) -----
-    id <- data$id[x]
-    race <- data$race[x]
-    gender <- data$gender[x]
-    handedness <- data$handedness[x]
-    birthYear <- data$birthYear[x]
-    participantDetails <- cbind.data.frame(id, race, gender, handedness, birthYear)
-    participants_detail_list[[x]] <- participantDetails
+    #subset by sessions ----
+    sessions <- unique(data$session) #identify the number of sessions
+    sessions_outPut_list <- list() #create a list to store session data
+
+    for(s in 1:length(sessions)){
+      sessionData <- data[data$session==s,] #Subset to the nth session
+      sessionData <- sessionData[!is.na(sessionData$id),] #remove rows where the id is NA (an old fix that I'm afraid to remove)
+
+      sessions_outPut_list[[s]] <- as.data.frame(BATD_analyze(sessionData))
+    }
+
+    #Combine the output from the sessions_outPut_list
+    sessionsData_combined <- plyr::rbind.fill(sessions_outPut_list) #combine the sessions output from sessions_outPut_list
+    sessionsData_combined$sessions <- 1:nrow(sessionsData_combined) #add a column which denotes session (will be based on the number of rows)
+
+    participants_outPut_list[[x]] <- sessionsData_combined
   }
 
-  allperformance <- plyr::rbind.fill(participants_outPut_list)
-  alldetails <- plyr::rbind.fill(participants_detail_list)
-
- #This is a work around cbind.fill (since rowr has been deprecated), it just replicates the 'alldetails' frame to match the nrow of allperformance
- n <- nrow(allperformance)/nrow(alldetails)
- all <- cbind(do.call("rbind", replicate(n, alldetails, simplify = FALSE)), allperformance)
+  all <- plyr::rbind.fill(participants_outPut_list)
 
   # baseDirectory <- getwd()
   # dir.create("Combined Data", showWarnings = FALSE)

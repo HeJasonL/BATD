@@ -31,6 +31,8 @@ library(BATD)
 #These other functions are used by the functions above. While they work, we do not recommend them to be used.
 #?BATD_plot #used to plot a single dataframe for a single participant produced by BATD_extract_XX
 #?BATD_analyze #used to analyze a single dataframe for a single participant produced by BATD_extract_XX
+
+devtools::install_github("HeJasonL/BATD", force = TRUE)
 library(BATD)
 ## STEP 1: BATD_extract for both old and new formats ----
 #Old Format

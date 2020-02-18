@@ -31,6 +31,8 @@ library(BATD)
 #These other functions are used by the functions above. While they work, we do not recommend them to be used.
 #?BATD_plot #used to plot a single dataframe for a single participant produced by BATD_extract_XX
 #?BATD_analyze #used to analyze a single dataframe for a single participant produced by BATD_extract_XX
+
+devtools::install_github("HeJasonL/BATD", force = TRUE)
 library(BATD)
 ## STEP 1: BATD_extract for both old and new formats ----
 #Old Format
@@ -48,7 +50,7 @@ BATD_analyze_all(NF)
 setwd("~/Dropbox/Documents/Data repository/Tactile Data/Raw/New Format/Toronto/ARBA1")
 participants_from_ARBA1 <- list.files(pattern = "-") #list the txt files containing participant's performance
 ARBA1 <- BATD_extract_NF(participants_from_ARBA1[1:3], "ARBA1")
-BATD_analyze_all(ARBA1)
+temp <- BATD_analyze_all(ARBA1)
 
 ## STEP 2: BATD_analyze_all for old and new formats ----
 BATD_analyze_all(OF) #Old format
