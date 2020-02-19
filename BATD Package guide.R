@@ -52,9 +52,9 @@ library(BATD)
 # BATD_analyze_all(OF)
 
 #New Format
-setwd("~/Dropbox/Documents/Data repository/Tactile Data/Raw/New Format/KKI") #setwd to the folder containing all the folders which contain participant's performance
+setwd("") #setwd to the folder containing all the folders which contain participant's performance
 participants_NF_list <- list.files(pattern = "-") #list the txt files containing participant's performance
-NF <- BATD_extract_NF(participants_NF_list[1], "JHU") #run BATD_extract_XX and assign the output to a dataframe
+NF <- BATD_extract_NF(participants_NF_list[1], "Site") #run BATD_extract_XX and assign the output to a dataframe
 BATD_analyze_all(NF)
 
 ## STEP 2: BATD_analyze_all for old and new formats ----
