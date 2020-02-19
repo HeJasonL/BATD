@@ -1,0 +1,25 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1582125211767.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "2127681801",
+    "id" : "182CCDC9",
+    "lastKnownWriteTime" : 1582125365,
+    "last_content_update" : 1582125365132,
+    "path" : "~/Github/BATD/R/BATD_analyze.R",
+    "project_path" : "R/BATD_analyze.R",
+    "properties" : {
+        "cursorPosition" : "102,35",
+        "scrollLine" : "84"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 2,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

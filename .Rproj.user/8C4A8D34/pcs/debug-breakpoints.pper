@@ -18,9 +18,9 @@
             },
             {
                 "editor_line_number" : 85,
-                "editor_state" : 2,
+                "editor_state" : 1,
                 "function_name" : "BATD_extract_OF",
-                "function_steps" : "",
+                "function_steps" : "8,4,11,4,5,4,11",
                 "id" : 8,
                 "is_package_breakpoint" : true,
                 "is_pending_debug_completion" : false,
@@ -28,7 +28,7 @@
                 "needs_updated_steps" : false,
                 "package_name" : "BATD",
                 "path" : "~/Github/BATD/R/BATD_extract_OF.R",
-                "state" : 2,
+                "state" : 1,
                 "type" : 0
             }
         ]
