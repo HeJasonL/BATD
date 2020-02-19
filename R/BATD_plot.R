@@ -141,6 +141,3 @@ setwd(paste0(baseDirectory,"/Plots")) #Switch to a folder to save the plots
   setwd(baseDirectory) #Return to the baseDirectory
 
 }
-
-
-

@@ -15,6 +15,21 @@
                 "path" : "~/Github/BATD/BATD Package guide.R",
                 "state" : 1,
                 "type" : 1
+            },
+            {
+                "editor_line_number" : 85,
+                "editor_state" : 2,
+                "function_name" : "BATD_extract_OF",
+                "function_steps" : "",
+                "id" : 8,
+                "is_package_breakpoint" : true,
+                "is_pending_debug_completion" : false,
+                "line_number" : 85,
+                "needs_updated_steps" : false,
+                "package_name" : "BATD",
+                "path" : "~/Github/BATD/R/BATD_extract_OF.R",
+                "state" : 2,
+                "type" : 0
             }
         ]
     }

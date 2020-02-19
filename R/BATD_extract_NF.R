@@ -17,7 +17,7 @@
 
 BATD_extract_NF <- function(list_of_filenames, Site){
 
-  #Trouble shooting
+  #Section left for developer troubleshooting 
   # list_of_filenames <- participants_from_ARBA3
   # Site <- "ARBA3"
 
@@ -119,7 +119,6 @@ BATD_extract_NF <- function(list_of_filenames, Site){
     participantTactileData$correctResponse  <- as.character(participantTactileData$correctResponse)
     participantTactileData$correctResponse[participantTactileData$correctResponse=="true"] <- "1"
     participantTactileData$correctResponse[participantTactileData$correctResponse=="false"] <- "0"
-
 
     #Label protocols with names (note that this is done in a specific order since sometimes protocols share numeric codes ----
     #Note, there are far more protocols in the new format than the old format, hence the greater number of protocol numbers
@@ -251,11 +250,3 @@ BATD_extract_NF <- function(list_of_filenames, Site){
   return(allParticipantsOutput_combined)
 
 }
-
-
-
-
-
-
-
-

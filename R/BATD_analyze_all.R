@@ -14,46 +14,45 @@
 #'
 #' @export
 
-BATD_analyze_all <- function(dataframe){
+BATD_analyze_all <- function(dataframe) {
+
   uniqueParticipants <- unique(dataframe$id)
   uniqueParticipants <- uniqueParticipants[!is.na(uniqueParticipants)]
 
   participants_outPut_list <- list()
   participants_detail_list <- list()
 
-  for(x in 1:length(uniqueParticipants)){
+  for (x in 1:length(uniqueParticipants)) {
 
-    #subset by participant ----
-    data <- dataframe[dataframe$id==uniqueParticipants[x],] #Subset to the nth participant
-    data <- data[!is.na(data$id),] #remove rows where the id is NA (an old fix that I'm afraid to remove)
+    # subset by participant ----
+    data <- dataframe[dataframe$id == uniqueParticipants[x], ]  #Subset to the nth participant
+    data <- data[!is.na(data$id), ]  #remove rows where the id is NA (an old fix that I'm afraid to remove)
 
-    #subset by sessions ----
-    sessions <- unique(data$session) #identify the number of sessions
-    sessions_outPut_list <- list() #create a list to store session data
+    # subset by sessions ----
+    sessions <- unique(data$session)  #identify the number of sessions
+    sessions_outPut_list <- list()  #create a list to store session data
 
-    for(s in 1:length(sessions)){
-      sessionData <- data[data$session==s,] #Subset to the nth session
-      sessionData <- sessionData[!is.na(sessionData$id),] #remove rows where the id is NA (an old fix that I'm afraid to remove)
+    for (s in 1:length(sessions)) {
+      sessionData <- data[data$session == s, ]  #Subset to the nth session
+      sessionData <- sessionData[!is.na(sessionData$id), ]  #remove rows where the id is NA (an old fix that I'm afraid to remove)
 
       sessions_outPut_list[[s]] <- as.data.frame(BATD_analyze(sessionData))
     }
 
-    #Combine the output from the sessions_outPut_list
-    sessionsData_combined <- plyr::rbind.fill(sessions_outPut_list) #combine the sessions output from sessions_outPut_list
-    sessionsData_combined$sessions <- 1:nrow(sessionsData_combined) #add a column which denotes session (will be based on the number of rows)
+    # Combine the output from the sessions_outPut_list
+    sessionsData_combined <- plyr::rbind.fill(sessions_outPut_list)  #combine the sessions output from sessions_outPut_list
+    sessionsData_combined$sessions <- 1:nrow(sessionsData_combined)  #add a column which denotes session (will be based on the number of rows)
 
     participants_outPut_list[[x]] <- sessionsData_combined
   }
 
   all <- plyr::rbind.fill(participants_outPut_list)
-  all <- all[!is.na(all$id),]
+  all <- all[!is.na(all$id), ]
 
-  # baseDirectory <- getwd()
-  # dir.create("Combined Data", showWarnings = FALSE)
-  # setwd(paste0(getwd(),"/Combined Data"))
-  # write.csv(all, "Vibrotactile_data_combined.csv")
-  # setwd(baseDirectory)
-
+  # baseDirectory <- getwd() dir.create('Combined Data', showWarnings = FALSE)
+  # setwd(paste0(getwd(),'/Combined Data')) write.csv(all,
+  # 'Vibrotactile_data_combined.csv') setwd(baseDirectory)
+  
   return(all)
 
 }
