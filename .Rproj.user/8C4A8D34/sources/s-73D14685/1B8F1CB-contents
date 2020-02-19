@@ -218,9 +218,6 @@ BATD_extract_NF <- function(list_of_filenames, Site){
     }
 
 
-
-
-
     #Change performance column values to numeric ----
     allProtocolOutputs <- suppressWarnings(as.data.frame(allProtocolOutputs))
     allProtocolOutputs[,20:25] <- suppressWarnings(sapply(allProtocolOutputs[,20:25], suppressWarnings(as.character))) #supressWarnings is on because some values are already NA and then turn into NA

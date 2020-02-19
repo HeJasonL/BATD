@@ -84,7 +84,6 @@ BATD_analyze(NF)
 BATD_plot_all(NF)
 
 #Testing on ARBA project
-
 setwd("~/Dropbox/Documents/Data repository/Tactile Data/Raw/New Format/Toronto/ARBA2")
 participants_from_ARBA2 <- list.files(pattern = "-") #list the txt files containing participant's performance
 ARBA2 <- BATD_extract_NF(participants_from_ARBA2, "ARBA2")
