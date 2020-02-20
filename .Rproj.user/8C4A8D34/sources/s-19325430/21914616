@@ -1,0 +1,25 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1582225005277.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "876115467",
+    "id" : "21914616",
+    "lastKnownWriteTime" : 1582225073,
+    "last_content_update" : 1582225073321,
+    "path" : "~/Github/BATD Developer testing script.R",
+    "project_path" : "../BATD Developer testing script.R",
+    "properties" : {
+        "cursorPosition" : "101,0",
+        "scrollLine" : "61"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 1,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}
