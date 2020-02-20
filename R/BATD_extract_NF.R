@@ -17,9 +17,9 @@
 
 BATD_extract_NF <- function(list_of_filenames, Site){
 
-  #Section left for developer troubleshooting 
-  # list_of_filenames <- participants_from_ARBA3
-  # Site <- "ARBA3"
+  # #Section left for developer troubleshooting
+  # list_of_filenames <- newFormat_from_all_sites[4]
+  # Site <- "Toronto_ARBA1"
 
   '%ni%' <- Negate('%in%') #create the function for %not in%
   inputDirectory <- getwd()
@@ -122,51 +122,38 @@ BATD_extract_NF <- function(list_of_filenames, Site){
 
     #Label protocols with names (note that this is done in a specific order since sometimes protocols share numeric codes ----
     #Note, there are far more protocols in the new format than the old format, hence the greater number of protocol numbers
-    #Simple and Choice Reaction times
+
     participantTactileData$protocolName[participantTactileData$protocol==801] <- "Simple Reaction Time"
     participantTactileData$protocolName[participantTactileData$protocol==800] <- "Choice Reaction Time"
 
-    #Static Detection Thresholds with and without adaptation (with ISI 30 and 100)
-    participantTactileData$protocolName[participantTactileData$protocol==900 & participantTactileData$stim1amplitude==0] <- "Static Detection Threshold"
     participantTactileData$protocolName[participantTactileData$protocol==100 & participantTactileData$stim1amplitude==0] <- "Static Detection Threshold"
+    participantTactileData$protocolName[participantTactileData$protocol==900 & participantTactileData$stim1amplitude==0] <- "Static Detection Threshold"
     participantTactileData$protocolName[participantTactileData$protocol==910 & participantTactileData$ISI==5000] <- "Static Detection Threshold"
+
     participantTactileData$protocolName[participantTactileData$protocol==910 & participantTactileData$ISI==30] <- "Static Detection Threshold with Adaptation ISI 30"
     participantTactileData$protocolName[participantTactileData$protocol==910 & participantTactileData$ISI==100] <- "Static Detection Threshold with Adaptation ISI 100"
 
-    #Duration discrimination
-    participantTactileData$protocolName[participantTactileData$protocol==350] <- "Duration Discrimination"
-
-    #Dynamic detection threshold
     participantTactileData$protocolName[participantTactileData$protocol==713] <- "Dynamic Detection Threshold"
 
-    #Amplitude Discrimination Threshold with and without adaptation (with single site and dual site)
-    participantTactileData$protocolName[participantTactileData$protocol==900 & participantTactileData$stim2amplitude!=0] <- "Amplitude Discrimination Threshold without Adaptation"
+    participantTactileData$protocolName[participantTactileData$protocol==900 & participantTactileData$stim1amplitude==100] <- "Sequential Amplitude Discrimination"
+
+    participantTactileData$protocolName[participantTactileData$protocol==900 & participantTactileData$stim2amplitude!=0] <- "Simultaneous Amplitude Discrimination"
+    participantTactileData$protocolName[participantTactileData$protocol==905 & participantTactileData$ISI==100] <- "Sequential Amplitude Discrimination" #Sequential amplitude discrimination for Calgary
+
+    participantTactileData$protocolName[participantTactileData$protocol==925] <- "Sequential Frequency Discrimination"
+    participantTactileData$protocolName[participantTactileData$protocol==920] <- "Simultaneous Frequency Discrimination"
+
     participantTactileData$protocolName[participantTactileData$protocol==171 & participantTactileData$astim2amplitude==100] <- "Amplitude Discrimination with Single Site Adaptation"
     participantTactileData$protocolName[participantTactileData$protocol==171 & participantTactileData$astim1amplitude==100] <- "Amplitude Discrimination with Dual Site Adaptation"
 
     participantTactileData$protocolName[participantTactileData$protocol==171 & participantTactileData$astim1amplitude==200] <- "Dual Staircase Amplitude Discrimination (up)"
     participantTactileData$protocolName[participantTactileData$protocol==171 & participantTactileData$astim2amplitude==200] <- "Dual Staircase Amplitude Discrimination (down)"
 
-    #Simultaneous and Sequential requency Discrimination
-    participantTactileData$protocolName[participantTactileData$protocol==920] <- "Simultaneous Frequency Discrimination"
-    participantTactileData$protocolName[participantTactileData$protocol==925] <- "Sequential Frequency Discrimination"
-
-    #Simultaneous and sequential Amplitude Discrimination
-    participantTactileData$protocolName[participantTactileData$protocol==105] <- "Simultaneous Amplitude Discrimination"
-    participantTactileData$protocolName[participantTactileData$protocol==100 & participantTactileData$stim1amplitude==100] <- "Sequential Amplitude Discrimination"
-
-    #Temporal Order Judgement with and without carrier
-    participantTactileData$protocolName[participantTactileData$protocol==930] <- "Temporal Order Judgement"
-    participantTactileData$protocolName[participantTactileData$protocol==931] <- "Temporal Order Judgement with Carrier"
-
-    #Duration Discrimination
+    participantTactileData$protocolName[participantTactileData$protocol==350] <- "Duration Discrimination"
     participantTactileData$protocolName[participantTactileData$protocol==950] <- "Duration Discrimination"
 
-    #University of Calgary patch
-    if(Site=="University of Calgary"){
-      participantTactileData$protocolName[participantTactileData$protocol==900] <- "Sequential Amplitude Discrimination"
-      participantTactileData$protocolName[participantTactileData$protocol==905] <- "Simultaneous Amplitude Discrimination"
-    }
+    participantTactileData$protocolName[participantTactileData$protocol==930] <- "Temporal Order Judgement"
+    participantTactileData$protocolName[participantTactileData$protocol==931] <- "Temporal Order Judgement with Carrier"
 
     #Accounting for session ----------------
     #Where this code (BATD_extract_NF) differs from the old format (BATD_extract_OF) is that sessions are not accounted for within the same folder, but rather, are accounted for posthoc (i.e., after all the data for a given participant is  combined)
@@ -183,21 +170,25 @@ BATD_extract_NF <- function(list_of_filenames, Site){
     participantTactileData_with_protocols_completed_more_than_once <- participantTactileData[participantTactileData$protocolName %in% protocols_completed_more_than_once,]
     names_of_protcols_completed_more_than_once <- unique(participantTactileData_with_protocols_completed_more_than_once$protocolName)
 
-
     if(length(protocols_completed_more_than_once) != 0){
     #This for loop identifies the protocols that have been completed more than once, identifies the number of times that protocol was completed and then assigns the column sessions to denote this ----
+
+    templist <- list() #create a temporary list outside of the loop
+
     for(s in 1:length(names_of_protcols_completed_more_than_once)){
     currentProtocol <- participantTactileData[participantTactileData$protocolName == names_of_protcols_completed_more_than_once[s],] #subset to the protocol completed more than once
     number_of_times_completed <- sessionsCompleted_by_protocol[names(sessionsCompleted_by_protocol) == names_of_protcols_completed_more_than_once[s]] #identify the number of times that protocol was completed
+
     ntrials_of_currentProtocol_by_session <- nrow(currentProtocol)/number_of_times_completed #identifies the number of rows of the protocol that was completed (*assumes that protocols repeated had an equal number of trials*)
 
+
     #Within the current loop, a dataframe is created printing a value (n) by the number of trials that were completed and then saves it in a list
-    templist <- list() #create a temporary list outside of the loop
     for(n in 1:number_of_times_completed){ #for 1 : the number of times a protocol was completed
-    templist[[n]] <- as.data.frame(replicate(ntrials_of_currentProtocol_by_session, n))#create a column stating session 'n' by the number of trials completed
+      templist[[n]] <- as.data.frame(replicate(ntrials_of_currentProtocol_by_session, n))#create a column stating session 'n' by the number of trials completed
     }
 
     sessions <- dplyr::bind_rows(templist) #the columns from the above for loop are then joined into a single column
+
     names(sessions) <- c("sessions") #which we name as session
     currentProtocol <- cbind(currentProtocol, sessions) #and join to the original dataframe we had called currentProtocol
     protocols_completed_more_than_once <- currentProtocol
@@ -209,18 +200,28 @@ BATD_extract_NF <- function(list_of_filenames, Site){
       #For the protocols completed once ----
       protocols_completed_once <- participantTactileData[participantTactileData$protocolName %in% protocols_completed_once,]
       protocols_completed_once$sessions <- 1
-
-      #Recombimne the dataframes for protocols completed more than once and just once ----
+      #Recombine the dataframes for protocols completed more than once and just once ----
       allProtocolOutputs <- rbind(protocols_completed_more_than_once, protocols_completed_once)
     } else {
       allProtocolOutputs <- protocols_completed_more_than_once
     }
 
-
     #Change performance column values to numeric ----
     allProtocolOutputs <- suppressWarnings(as.data.frame(allProtocolOutputs))
     allProtocolOutputs[,20:25] <- suppressWarnings(sapply(allProtocolOutputs[,20:25], suppressWarnings(as.character))) #supressWarnings is on because some values are already NA and then turn into NA
     allProtocolOutputs[,20:25] <- suppressWarnings(sapply(allProtocolOutputs[,20:25], suppressWarnings(as.numeric)))
+
+    #Accounting for discrimination tasks not subtracting the comparison stimulus (this issue is specific to the new format at some sites (i.e., University of Calgary)) ----
+    if(Site == "University of Calgary"){
+      allProtocolOutputs$value[grep("Amplitude Discrimination", allProtocolOutputs$protocolName)] <- allProtocolOutputs$value[grep("Amplitude Discrimination", allProtocolOutputs$protocolName)]-200
+      allProtocolOutputs$value[grep("Frequency Discrimination", allProtocolOutputs$protocolName)] <- allProtocolOutputs$value[grep("Frequency Discrimination", allProtocolOutputs$protocolName)]-30
+    }
+
+    if(Site %in% c("KKI","CCH","JHU")){
+      #Note to self, this is a temporary brute force fix for the problem that we have where the number of trials completed by protocol are NOT equal
+      #I will eventually need the code to recognize how many trials were completed within a given session, rather than assume it is exactly half of the total number of tirals completed
+      allProtocolOutputs$sessions[allProtocolOutputs$protocolName=="Simultaneous Amplitude Discrimination"][25:52] <- 2
+    }
 
     #Create column(s) to detail the extraction process ----
     allProtocolOutputs$site <- Site

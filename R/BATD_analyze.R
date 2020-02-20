@@ -96,12 +96,6 @@ BATD_analyze <- function(dataframe){
         if(protocol %ni% c("Simple Reaction Time","Choice Reaction Time")){
           threshold <- mean(sessionData$value[(nrow(sessionData)-4):(nrow(sessionData))])
         }
-        if(protocol %in% c("Amplitude Discrimination Threshold without Adaptation","Amplitude Discrimination with Single Site Adaptation", "Amplitude Discrimination with Dual Site Adaptation")){
-          threshold <- threshold-100 #removal of the standard comparison stimulus for amplitude discrimination protocols
-        }
-        if(protocol %in% c("Simultaneous Frequency Discrimination","Sequential Frequency Discrimination")){
-          threshold <- threshold-30 #removal of the standard comparison stimulus for amplitude discrimination protocols
-        }
         if(protocol %in% c("Dynamic Detection Threshold")){
           threshold <- mean(sessionData$value[sessionData$correctResponse==1])
         }

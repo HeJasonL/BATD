@@ -37,7 +37,7 @@ BATD_extract_OF <- function(list_of_filenames, Site) {
     datefileinFolder <- filesinFolder[!grepl(".csv", filesinFolder)]  #Then, we want to make sure we don't pick up any .csvs (which also tends to be present in these folders)
     setwd(paste0(participantsFolder, "/", datefileinFolder))  #set the working directory to the folder (datefileinFolder) which contains all the protocols
     protocolsFolder <- getwd()
-    
+
     protocolsinfolder <- list.files()  #list all the files in the protocolsFolder
     protocolsinprotocolsFolder <- protocolsinfolder[!stringr::str_length(protocolsinfolder) >
       3]  #subset to only the folders with a str length of 3, since all protocols have a 3 digit identifier
@@ -201,6 +201,12 @@ BATD_extract_OF <- function(list_of_filenames, Site) {
     allProtocolOutputs[, 9:21] <- suppressWarnings(sapply(allProtocolOutputs[,
       9:21], suppressWarnings(as.numeric)))
 
+
+    #Accounting for discrimination tasks not subtracting the comparison stimulus ----
+    # print(allProtocolOutputs$value[grep("Amplitude Discrimination", allProtocolOutputs$protocolName)])
+    # allProtocolOutputs$value[grep("Amplitude Discrimination", allProtocolOutputs$protocolName)] <- allProtocolOutputs$value[grep("Amplitude Discrimination", allProtocolOutputs$protocolName)]-200
+    # allProtocolOutputs$value[grep("Frequency Discrimination", allProtocolOutputs$protocolName)] <- allProtocolOutputs$value[grep("Frequency Discrimination", allProtocolOutputs$protocolName)]-30
+    # print(allProtocolOutputs$value[grep("Amplitude Discrimination", allProtocolOutputs$protocolName)])
 
     # Create column(s) to detail the extraction process ----
     allProtocolOutputs$site <- Site

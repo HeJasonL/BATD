@@ -42,17 +42,18 @@ BATD_analyze_all <- function(dataframe) {
     # Combine the output from the sessions_outPut_list
     sessionsData_combined <- plyr::rbind.fill(sessions_outPut_list)  #combine the sessions output from sessions_outPut_list
     sessionsData_combined$sessions <- 1:nrow(sessionsData_combined)  #add a column which denotes session (will be based on the number of rows)
-
     participants_outPut_list[[x]] <- sessionsData_combined
   }
 
   all <- plyr::rbind.fill(participants_outPut_list)
   all <- all[!is.na(all$id), ]
+  all$site <- sessionData$site[1]
+
 
   # baseDirectory <- getwd() dir.create('Combined Data', showWarnings = FALSE)
   # setwd(paste0(getwd(),'/Combined Data')) write.csv(all,
   # 'Vibrotactile_data_combined.csv') setwd(baseDirectory)
-  
+
   return(all)
 
 }

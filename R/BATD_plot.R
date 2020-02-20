@@ -49,7 +49,7 @@ setwd(paste0(baseDirectory,"/Plots")) #Switch to a folder to save the plots
 #For loop across sessions completed by a given participant ----
   for(s in 1:length(sessions)){
     temp <- data[data$session==sessions[s],] #Specify to the session
-    protocols_completed <- unique(temp$protocolName) #List the protocols completed
+    protocols_completed <- rev(unique(temp$protocolName)) #List the protocols completed
     plots_of_protocols_completed <- list() #Create a list for the plots of protocols completed to be put in
 
 #For loop across protocols completed by a given participant ----
@@ -57,6 +57,19 @@ setwd(paste0(baseDirectory,"/Plots")) #Switch to a folder to save the plots
       Data <- temp[temp$protocolName==completed,] #Reset the Data to the relevant protocol
       Analyzed_data <- BATD_analyze(Data) #BATD_analyze the data to get the performance metrics
       colnames(Analyzed_data) <- gsub("_.*", "",colnames(Analyzed_data)) #strip the tags (makes universally consistent across protocols)
+
+      #Temporary fix for the removal of practice trials
+      Data <- Data[!is.na(Data$trialNumber),] #First, remove any rows where there are more trial numbers than you would reasonably expect
+      numberofPracticeTrials <- as.numeric(as.character(Data$numberofPracticeTrials[1])) + 1 #adding one so that the trials start AFTER the n of practice trials
+
+      #here we remove the practice trials if the n > 10, this is because some sites actually ran a whole protocol as a practice, rather than the first n-numnber of trials (usually 3)
+      #If prctice trials were ran as a whole protocol, thye are just treated as a protocol
+      if(numberofPracticeTrials < 9 ){
+        Data <- Data[numberofPracticeTrials:nrow(Data),] #remove practice trials
+        Data$trialNumber <- 1:nrow(Data) #reset trial numbers
+      }
+
+
 
       #if the current protocol are the tactile threshold protocols:
       if(completed %ni% c("Simple Reaction Time","Choice Reaction Time")){
@@ -118,7 +131,12 @@ setwd(paste0(baseDirectory,"/Plots")) #Switch to a folder to save the plots
       plots_of_protocols_completed[[completed]] <- annotated_plots
     }
 
-    all_plots_combined <- ggpubr::ggarrange(plotlist=rev(plots_of_protocols_completed),#There are many ways to do this,
+
+    if(data$site[1]=="University of Calgary"){
+      plots_of_protocols_completed <- rev(plots_of_protocols_completed)
+    }
+
+    all_plots_combined <- ggpubr::ggarrange(plotlist=plots_of_protocols_completed,#There are many ways to do this,
                                             widths = c(1,1),  #but here you can arrange all the plots from the list you put plots in earlier
                                             common.legend = FALSE, #common legend
                                             ncol = 4,
@@ -128,12 +146,13 @@ setwd(paste0(baseDirectory,"/Plots")) #Switch to a folder to save the plots
     plots_of_protocols_by_session[[s]] <- all_plots_combined
   }
 
+
   #Save the plots completed by a given participant, containing all the completed protocols, for both sessions --------
   for(a in 1:length(sessions)){
-    id <- temp$id[1]
+    id <- gsub(".txt","",temp$originalFilename)[1]
     session <- temp$sessions[1]
     plot <- plots_of_protocols_by_session[[a]]
-    plot <- ggpubr::annotate_figure(plot, top = ggpubr::text_grob(paste0("Participant: ",temp$id[1], "; Session: ", a), color = "black", face = "italic", size = 15))
+    plot <- ggpubr::annotate_figure(plot, top = ggpubr::text_grob(paste0("Participant: ", id, "; Session: ", a), color = "black", face = "italic", size = 15))
     plot <- ggpubr::annotate_figure(plot, top = ggpubr::text_grob("Batch Analysis of Tactile Data (BATD)", color = "black", face = "bold", size = 20))
     ggplot2::ggsave(filename = paste0(id,"_","session_",a,".pdf"), plot = plot, width = 20, height = 12 )
   }
