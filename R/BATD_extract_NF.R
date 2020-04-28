@@ -17,15 +17,18 @@
 
 BATD_extract_NF <- function(list_of_filenames, Site){
 
-  # #Section left for developer troubleshooting
-  # setwd("~/Dropbox/Documents/Data repository/Tactile Data/Raw/New Format/Toronto/ARBA4")
-  # list_of_filenames <- list.files(pattern = "-") #list the txt files containing participant's performance
+  # #Section left for developer debugging ----
+  # setwd("~/Dropbox/Documents/Data repository/Tactile Data/Raw/New Format/Toronto/ARBA1")
+  # list_of_filenames <- list.files(pattern = "-")[14] #list the txt files containing participant's performance
   # Site <- ("ARBA4")
+  #debugging <- "on"
 
   '%ni%' <- Negate('%in%') #create the function for %not in%
   inputDirectory <- getwd()
   dir.create("output", showWarnings = FALSE) #set the wd to the folder where you wish to save the output data to
   outputDirectory <- paste0(inputDirectory,"/output") #automatically creates a folder in that directory named 'output' - if you already have a folder named output, ignore this code.
+
+  ##SECTION 1 ----
 
   #Create external lists -----
   allParticipantsOutput <- list()
@@ -54,7 +57,6 @@ BATD_extract_NF <- function(list_of_filenames, Site){
             list[[i]] <-  temp[(paste(protocols[i])):(paste(protocols[i+1])),]
           } #loop for breaking the output into separate protocols
           list[[i]] <- temp[(paste(protocols[i])):nrow(temp),] #puts the last protocol into the list (for loop above cannot account for last protocol)
-
 
     #For loop through the protocols in the protocolsFolder and extract the participant/protocol/performance details ----
     ProtocolOutputList <- list()
@@ -162,72 +164,56 @@ BATD_extract_NF <- function(list_of_filenames, Site){
     participantTactileData$protocolName[participantTactileData$protocol==930] <- "Temporal Order Judgement"
     participantTactileData$protocolName[participantTactileData$protocol==931] <- "Temporal Order Judgement with Carrier"
 
+
+    ##SECTION 2 ----
+
     #Accounting for session ----------------
     #Where this code (BATD_extract_NF) differs from the old format (BATD_extract_OF) is that sessions are not accounted for within the same folder, but rather, are accounted for posthoc (i.e., after all the data for a given participant is  combined)
     #In the old format, a participant who does the same session twice will have data stored in the same folder, whereas in the new format, this was not the case (at least at JHU/KKI)
     #There are some cases where participants completed the same protocol twice, we need to be able to differentiate whether it was their first or second attempt
     #The attempts are always in chronological order (again, at least at JHU and KKI)
-    #This code below is really inefficient, and was admittedly done in a hurry, this will be fixed in the next version update (nonetheless, it works)
 
     #For the protocols completed MORE than once ----
-    sessionsCompleted_by_protocol <- table(participantTactileData$protocolName[participantTactileData$trialNumber==1]) #name of protocols completed
-    protocols_completed_more_than_once <- names(sessionsCompleted_by_protocol[sessionsCompleted_by_protocol>1]) #names of protocols completed more than once
-    protocols_completed_once <- names(sessionsCompleted_by_protocol[names(sessionsCompleted_by_protocol) %ni% protocols_completed_more_than_once]) #names of protocols completed once
+    sessionsCompleted_by_protocol <- table(participantTactileData$protocolName[participantTactileData$trialNumber==1]) #name of all protocols completed
+    protocols_completed_more_than_once <- names(sessionsCompleted_by_protocol[sessionsCompleted_by_protocol>1]) #names of the protocols completed more than once
+    protocols_completed_once <- names(sessionsCompleted_by_protocol[names(sessionsCompleted_by_protocol) %ni% protocols_completed_more_than_once]) #names of protocols completed only once
 
     participantTactileData_with_protocols_completed_more_than_once <- participantTactileData[participantTactileData$protocolName %in% protocols_completed_more_than_once,]
     names_of_protcols_completed_more_than_once <- unique(participantTactileData_with_protocols_completed_more_than_once$protocolName)
+
+    list_of_labelled_protocols_completed_more_than_once <- list()
+
 
     if(length(protocols_completed_more_than_once) != 0){
     #This for loop identifies the protocols that have been completed more than once, identifies the number of times that protocol was completed and then assigns the column sessions to denote this ----
 
     for(s in 1:length(names_of_protcols_completed_more_than_once)){
+      print(names_of_protcols_completed_more_than_once[s])
 
-    currentProtocol <- participantTactileData[participantTactileData$protocolName == names_of_protcols_completed_more_than_once[s],] #subset to the protocol completed more than once
-    currentProtocol$rowNumber <- 1:nrow(currentProtocol)
-    startofProtocol <- currentProtocol$rowNumber[currentProtocol$trialNumber==1]
-    startofProtocol[2:length(startofProtocol)] <-  startofProtocol[2:length(startofProtocol)] - 1
+      currentProtocol <- participantTactileData[participantTactileData$protocolName == names_of_protcols_completed_more_than_once[s],] #subset to the protocol completed more than once
+      currentProtocol$rowNumber <- 1:nrow(currentProtocol)
+      startofProtocol <- currentProtocol$rowNumber[currentProtocol$trialNumber==1]
+      startofProtocol[2:length(startofProtocol)] <-  startofProtocol[2:length(startofProtocol)] - 1
 
+      #Label the session number of each protocol (in 3 steps)
+      #1. Label all the sessions except for the last
+      tempolist <- list()
+      for(t in 1:(length(startofProtocol)-1)){
+        currentSession <- currentProtocol[startofProtocol[t]:startofProtocol[t+1],]
+        currentSession$session <- t
+        tempolist[[t]] <- currentSession
+      }
 
-    # currentProtocol[startofProtocol[1]:startofProtocol[2],]
-    # currentProtocol[startofProtocol[2]:startofProtocol[3],]
-    # currentProtocol[startofProtocol[3]:startofProtocol[4],]
-    # currentProtocol[startofProtocol[4]:nrow(currentProtocol),]
+      #2. Label the last session
+      lastSession <- currentProtocol[(startofProtocol[t+1]+1):nrow(currentProtocol),]
+      lastSession$session <- t + 1
+      tempolist[[t + 1]] <- lastSession
 
-
-    tempolist <- list()
-    for(t in 1:(length(startofProtocol)-1)){
-      currentSession <- currentProtocol[startofProtocol[t]:startofProtocol[t+1],]
-      currentSession$session <- t
-      tempolist[[t]] <- currentSession
+      #3. Combine 'all the sessions except for the last' with the 'last session'
+      labeledProtocol <-  data.table::rbindlist(tempolist)
+      list_of_labelled_protocols_completed_more_than_once[[s]] <- labeledProtocol
     }
-
-    lastSession <- currentProtocol[(startofProtocol[t+1]+1):nrow(currentProtocol),]
-    lastSession$session <- t + 1
-
-    tempolist[[t + 1]] <- lastSession
-
-    protocols_completed_more_than_once <-  data.table::rbindlist(tempolist)
-
-
-
-
-    # number_of_times_completed <- sessionsCompleted_by_protocol[names(sessionsCompleted_by_protocol) == names_of_protcols_completed_more_than_once[s]] #identify the number of times that protocol was completed
-    #
-    # ntrials_of_currentProtocol_by_session <- nrow(currentProtocol)/number_of_times_completed #identifies the number of rows of the protocol that was completed (*assumes that protocols repeated had an equal number of trials*)
-    #
-    # templist <- list() #create a temporary list outside of the loop
-    #
-    # #Within the current loop, a dataframe is created printing a value (n) by the number of trials that were completed and then saves it in a list
-    # for(n in 1:number_of_times_completed){ #for 1 : the number of times a protocol was completed
-    #   templist[[n]] <- as.data.frame(replicate(ntrials_of_currentProtocol_by_session, n))#create a column stating session 'n' by the number of trials completed
-    # }
-    #
-    # sessions <- dplyr::bind_rows(templist) #the columns from the above for loop are then joined into a single column
-    #
-    # names(sessions) <- c("sessions") #which we name as session
-    # currentProtocol <- cbind(currentProtocol, sessions) #and join to the original dataframe we had called currentProtocol
-    # protocols_completed_more_than_once <- currentProtocol
-    }
+      protocols_completed_more_than_once <- as.data.frame(data.table::rbindlist(list_of_labelled_protocols_completed_more_than_once, fill = TRUE))
     }
 
     #Only do if participants have protocols that they completed once
@@ -238,12 +224,11 @@ BATD_extract_NF <- function(list_of_filenames, Site){
       protocols_completed_once$session <- 1
       #Recombine the dataframes for protocols completed more than once and just once ----
       allProtocolOutputs <- rbind(protocols_completed_more_than_once, protocols_completed_once)
-      colnames(protocols_completed_more_than_once)
-      colnames(protocols_completed_once)
-
     } else {
       allProtocolOutputs <- protocols_completed_more_than_once
     }
+
+    ## SECTION 3 ----
 
     #Change performance column values to numeric ----
     allProtocolOutputs <- suppressWarnings(as.data.frame(allProtocolOutputs))
