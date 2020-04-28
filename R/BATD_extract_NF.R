@@ -136,10 +136,10 @@ BATD_extract_NF <- function(list_of_filenames, Site){
     participantTactileData$protocolName[participantTactileData$protocol==713] <- "Dynamic Detection Threshold"
 
     participantTactileData$protocolName[participantTactileData$protocol==900 & participantTactileData$stim1amplitude==100] <- "Sequential Amplitude Discrimination"
-    participantTactileData$protocolName[participantTactileData$protocol==100 & participantTactileData$stim1amplitude!=0] <- "Sequential Amplitude Discrimination"
+    participantTactileData$protocolName[participantTactileData$protocol==100 & participantTactileData$stim1amplitude==200] <- "Sequential Amplitude Discrimination"
 
     participantTactileData$protocolName[participantTactileData$protocol==900 & participantTactileData$stim2amplitude!=0] <- "Simultaneous Amplitude Discrimination"
-    participantTactileData$protocolName[participantTactileData$protocol==100 & participantTactileData$stim1amplitude!=100] <- "Simultaneous Amplitude Discrimination"
+    participantTactileData$protocolName[participantTactileData$protocol==100 & participantTactileData$stim1amplitude==200] <- "Simultaneous Amplitude Discrimination"
 
     participantTactileData$protocolName[participantTactileData$protocol==905 & participantTactileData$ISI==100] <- "Sequential Amplitude Discrimination" #Sequential amplitude discrimination for Calgary
 
