@@ -18,9 +18,9 @@
 BATD_extract_NF <- function(list_of_filenames, Site){
 
   # #Section left for developer troubleshooting
-  # setwd("~/Dropbox/Documents/Data repository/Tactile Data/Raw/New Format/Toronto/ARBA1")
+  # setwd("~/Dropbox/Documents/Data repository/Tactile Data/Raw/New Format/Toronto/ARBA4")
   # list_of_filenames <- list.files(pattern = "-") #list the txt files containing participant's performance
-  # Site <- ("ARBA1")
+  # Site <- ("ARBA4")
 
   '%ni%' <- Negate('%in%') #create the function for %not in%
   inputDirectory <- getwd()
@@ -181,23 +181,52 @@ BATD_extract_NF <- function(list_of_filenames, Site){
     #This for loop identifies the protocols that have been completed more than once, identifies the number of times that protocol was completed and then assigns the column sessions to denote this ----
 
     for(s in 1:length(names_of_protcols_completed_more_than_once)){
+
     currentProtocol <- participantTactileData[participantTactileData$protocolName == names_of_protcols_completed_more_than_once[s],] #subset to the protocol completed more than once
-    number_of_times_completed <- sessionsCompleted_by_protocol[names(sessionsCompleted_by_protocol) == names_of_protcols_completed_more_than_once[s]] #identify the number of times that protocol was completed
+    currentProtocol$rowNumber <- 1:nrow(currentProtocol)
+    startofProtocol <- currentProtocol$rowNumber[currentProtocol$trialNumber==1]
+    startofProtocol[2:length(startofProtocol)] <-  startofProtocol[2:length(startofProtocol)] - 1
 
-    ntrials_of_currentProtocol_by_session <- nrow(currentProtocol)/number_of_times_completed #identifies the number of rows of the protocol that was completed (*assumes that protocols repeated had an equal number of trials*)
 
-    templist <- list() #create a temporary list outside of the loop
+    # currentProtocol[startofProtocol[1]:startofProtocol[2],]
+    # currentProtocol[startofProtocol[2]:startofProtocol[3],]
+    # currentProtocol[startofProtocol[3]:startofProtocol[4],]
+    # currentProtocol[startofProtocol[4]:nrow(currentProtocol),]
 
-    #Within the current loop, a dataframe is created printing a value (n) by the number of trials that were completed and then saves it in a list
-    for(n in 1:number_of_times_completed){ #for 1 : the number of times a protocol was completed
-      templist[[n]] <- as.data.frame(replicate(ntrials_of_currentProtocol_by_session, n))#create a column stating session 'n' by the number of trials completed
+
+    tempolist <- list()
+    for(t in 1:(length(startofProtocol)-1)){
+      currentSession <- currentProtocol[startofProtocol[t]:startofProtocol[t+1],]
+      currentSession$session <- t
+      tempolist[[t]] <- currentSession
     }
 
-    sessions <- dplyr::bind_rows(templist) #the columns from the above for loop are then joined into a single column
+    lastSession <- currentProtocol[(startofProtocol[t+1]+1):nrow(currentProtocol),]
+    lastSession$session <- t + 1
 
-    names(sessions) <- c("sessions") #which we name as session
-    currentProtocol <- cbind(currentProtocol, sessions) #and join to the original dataframe we had called currentProtocol
-    protocols_completed_more_than_once <- currentProtocol
+    tempolist[[t + 1]] <- lastSession
+
+    protocols_completed_more_than_once <-  data.table::rbindlist(tempolist)
+
+
+
+
+    # number_of_times_completed <- sessionsCompleted_by_protocol[names(sessionsCompleted_by_protocol) == names_of_protcols_completed_more_than_once[s]] #identify the number of times that protocol was completed
+    #
+    # ntrials_of_currentProtocol_by_session <- nrow(currentProtocol)/number_of_times_completed #identifies the number of rows of the protocol that was completed (*assumes that protocols repeated had an equal number of trials*)
+    #
+    # templist <- list() #create a temporary list outside of the loop
+    #
+    # #Within the current loop, a dataframe is created printing a value (n) by the number of trials that were completed and then saves it in a list
+    # for(n in 1:number_of_times_completed){ #for 1 : the number of times a protocol was completed
+    #   templist[[n]] <- as.data.frame(replicate(ntrials_of_currentProtocol_by_session, n))#create a column stating session 'n' by the number of trials completed
+    # }
+    #
+    # sessions <- dplyr::bind_rows(templist) #the columns from the above for loop are then joined into a single column
+    #
+    # names(sessions) <- c("sessions") #which we name as session
+    # currentProtocol <- cbind(currentProtocol, sessions) #and join to the original dataframe we had called currentProtocol
+    # protocols_completed_more_than_once <- currentProtocol
     }
     }
 
@@ -205,9 +234,13 @@ BATD_extract_NF <- function(list_of_filenames, Site){
     if(length(protocols_completed_once) != 0){
       #For the protocols completed once ----
       protocols_completed_once <- participantTactileData[participantTactileData$protocolName %in% protocols_completed_once,]
-      protocols_completed_once$sessions <- 1
+      protocols_completed_once$rowNumber <- 1:nrow(protocols_completed_once)
+      protocols_completed_once$session <- 1
       #Recombine the dataframes for protocols completed more than once and just once ----
       allProtocolOutputs <- rbind(protocols_completed_more_than_once, protocols_completed_once)
+      colnames(protocols_completed_more_than_once)
+      colnames(protocols_completed_once)
+
     } else {
       allProtocolOutputs <- protocols_completed_more_than_once
     }
@@ -235,13 +268,12 @@ BATD_extract_NF <- function(list_of_filenames, Site){
     allProtocolOutputs$extractedBy <- "BATD V.1.3" #Specify that the data was extracted by BATD version V.X.X
 
     #Save the extracted file for each participant in the output directory -----
-    print(paste("Extracting participant:", id))
     currentDirectory <- getwd() #remember the current wd
     setwd(outputDirectory) #setwd to the outputDirectory
     write.csv(allProtocolOutputs, file = paste0("BATD_extracted_", list_of_filenames[p],"_NF.csv")) #save the output of all the protocols for each participant as a csv
     setwd(currentDirectory) #return to the currentDirectory
-
     allParticipantsOutput[[p]] <- as.data.frame(allProtocolOutputs)
+    print(paste("Extracted participant:", id))
   }
 
   allParticipantsOutput_combined <-  as.data.frame(data.table::rbindlist(allParticipantsOutput, fill = TRUE))
