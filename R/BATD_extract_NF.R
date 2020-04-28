@@ -21,7 +21,7 @@ BATD_extract_NF <- function(list_of_filenames, Site){
   # setwd("~/Dropbox/Documents/Data repository/Tactile Data/Raw/New Format/Toronto/ARBA1")
   # list_of_filenames <- list.files(pattern = "-")[14] #list the txt files containing participant's performance
   # Site <- ("ARBA4")
-  debugging <- "on"
+  # debugging <- "on"
 
   '%ni%' <- Negate('%in%') #create the function for %not in%
   inputDirectory <- getwd()
@@ -265,10 +265,6 @@ BATD_extract_NF <- function(list_of_filenames, Site){
     print(paste("Extracted participant:", id))
   }
 
-  if(debugging=="on"){
-    print("SECTION 3: COMPLETED")
-  }
-
   ## SECTION 4 ----
 
   allParticipantsOutput_combined <-  as.data.frame(data.table::rbindlist(allParticipantsOutput, fill = TRUE))
@@ -278,10 +274,6 @@ BATD_extract_NF <- function(list_of_filenames, Site){
   setwd(combinedDirectory)
   write.csv(allParticipantsOutput_combined, file = "BATD_extracted_combined.csv")
   setwd(inputDirectory)
-
-  if(debugging=="on"){
-    print("SECTION 4: COMPLETED")
-  }
 
   print(paste0("Combined extracted data saved in:", combinedDirectory))
 
