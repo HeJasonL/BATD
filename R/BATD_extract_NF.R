@@ -21,7 +21,7 @@ BATD_extract_NF <- function(list_of_filenames, Site){
   # setwd("~/Dropbox/Documents/Data repository/Tactile Data/Raw/New Format/Toronto/ARBA1")
   # list_of_filenames <- list.files(pattern = "-")[14] #list the txt files containing participant's performance
   # Site <- ("ARBA4")
-  #debugging <- "on"
+  debugging <- "on"
 
   '%ni%' <- Negate('%in%') #create the function for %not in%
   inputDirectory <- getwd()
@@ -143,7 +143,6 @@ BATD_extract_NF <- function(list_of_filenames, Site){
 
     participantTactileData$protocolName[participantTactileData$protocol==100 & participantTactileData$protocolName != "Static Detection Threshold"]
 
-
     participantTactileData$protocolName[participantTactileData$protocol==900 & participantTactileData$stim2amplitude!=0] <- "Simultaneous Amplitude Discrimination"
     participantTactileData$protocolName[participantTactileData$protocol==105] <- "Simultaneous Amplitude Discrimination"
 
@@ -164,9 +163,11 @@ BATD_extract_NF <- function(list_of_filenames, Site){
     participantTactileData$protocolName[participantTactileData$protocol==930] <- "Temporal Order Judgement"
     participantTactileData$protocolName[participantTactileData$protocol==931] <- "Temporal Order Judgement with Carrier"
 
+    if(debugging=="on"){
+      print("SECTION 1: COMPLETED")
+    }
 
     ##SECTION 2 ----
-
     #Accounting for session ----------------
     #Where this code (BATD_extract_NF) differs from the old format (BATD_extract_OF) is that sessions are not accounted for within the same folder, but rather, are accounted for posthoc (i.e., after all the data for a given participant is  combined)
     #In the old format, a participant who does the same session twice will have data stored in the same folder, whereas in the new format, this was not the case (at least at JHU/KKI)
@@ -188,14 +189,13 @@ BATD_extract_NF <- function(list_of_filenames, Site){
     #This for loop identifies the protocols that have been completed more than once, identifies the number of times that protocol was completed and then assigns the column sessions to denote this ----
 
     for(s in 1:length(names_of_protcols_completed_more_than_once)){
-      print(names_of_protcols_completed_more_than_once[s])
-
       currentProtocol <- participantTactileData[participantTactileData$protocolName == names_of_protcols_completed_more_than_once[s],] #subset to the protocol completed more than once
       currentProtocol$rowNumber <- 1:nrow(currentProtocol)
       startofProtocol <- currentProtocol$rowNumber[currentProtocol$trialNumber==1]
       startofProtocol[2:length(startofProtocol)] <-  startofProtocol[2:length(startofProtocol)] - 1
 
       #Label the session number of each protocol (in 3 steps)
+
       #1. Label all the sessions except for the last
       tempolist <- list()
       for(t in 1:(length(startofProtocol)-1)){
@@ -226,6 +226,10 @@ BATD_extract_NF <- function(list_of_filenames, Site){
       allProtocolOutputs <- rbind(protocols_completed_more_than_once, protocols_completed_once)
     } else {
       allProtocolOutputs <- protocols_completed_more_than_once
+    }
+
+    if(debugging=="on"){
+      print("SECTION 2: COMPLETED")
     }
 
     ## SECTION 3 ----
@@ -261,6 +265,12 @@ BATD_extract_NF <- function(list_of_filenames, Site){
     print(paste("Extracted participant:", id))
   }
 
+  if(debugging=="on"){
+    print("SECTION 3: COMPLETED")
+  }
+
+  ## SECTION 4 ----
+
   allParticipantsOutput_combined <-  as.data.frame(data.table::rbindlist(allParticipantsOutput, fill = TRUE))
   setwd(inputDirectory)
   dir.create("combined", showWarnings = FALSE) #set the wd to the folder where you wish to save the combined data to
@@ -268,6 +278,10 @@ BATD_extract_NF <- function(list_of_filenames, Site){
   setwd(combinedDirectory)
   write.csv(allParticipantsOutput_combined, file = "BATD_extracted_combined.csv")
   setwd(inputDirectory)
+
+  if(debugging=="on"){
+    print("SECTION 4: COMPLETED")
+  }
 
   print(paste0("Combined extracted data saved in:", combinedDirectory))
 
