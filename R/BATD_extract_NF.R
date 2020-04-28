@@ -18,8 +18,9 @@
 BATD_extract_NF <- function(list_of_filenames, Site){
 
   # #Section left for developer troubleshooting
-  # list_of_filenames <- newFormat_from_all_sites[4]
-  # Site <- "Toronto_ARBA1"
+  # setwd("~/Dropbox/Documents/Data repository/Tactile Data/Raw/New Format/Toronto/ARBA1")
+  # list_of_filenames <- list.files(pattern = "-") #list the txt files containing participant's performance
+  # Site <- ("ARBA1")
 
   '%ni%' <- Negate('%in%') #create the function for %not in%
   inputDirectory <- getwd()
@@ -136,10 +137,13 @@ BATD_extract_NF <- function(list_of_filenames, Site){
     participantTactileData$protocolName[participantTactileData$protocol==713] <- "Dynamic Detection Threshold"
 
     participantTactileData$protocolName[participantTactileData$protocol==900 & participantTactileData$stim1amplitude==100] <- "Sequential Amplitude Discrimination"
-    participantTactileData$protocolName[participantTactileData$protocol==100 & participantTactileData$stim1amplitude==200] <- "Sequential Amplitude Discrimination"
+    participantTactileData$protocolName[participantTactileData$protocol==100 &  participantTactileData$stim1amplitude==100] <- "Sequential Amplitude Discrimination"
+
+    participantTactileData$protocolName[participantTactileData$protocol==100 & participantTactileData$protocolName != "Static Detection Threshold"]
+
 
     participantTactileData$protocolName[participantTactileData$protocol==900 & participantTactileData$stim2amplitude!=0] <- "Simultaneous Amplitude Discrimination"
-    participantTactileData$protocolName[participantTactileData$protocol==100 & participantTactileData$stim1amplitude==200] <- "Simultaneous Amplitude Discrimination"
+    participantTactileData$protocolName[participantTactileData$protocol==105] <- "Simultaneous Amplitude Discrimination"
 
     participantTactileData$protocolName[participantTactileData$protocol==905 & participantTactileData$ISI==100] <- "Sequential Amplitude Discrimination" #Sequential amplitude discrimination for Calgary
 
@@ -176,14 +180,13 @@ BATD_extract_NF <- function(list_of_filenames, Site){
     if(length(protocols_completed_more_than_once) != 0){
     #This for loop identifies the protocols that have been completed more than once, identifies the number of times that protocol was completed and then assigns the column sessions to denote this ----
 
-    templist <- list() #create a temporary list outside of the loop
-
     for(s in 1:length(names_of_protcols_completed_more_than_once)){
     currentProtocol <- participantTactileData[participantTactileData$protocolName == names_of_protcols_completed_more_than_once[s],] #subset to the protocol completed more than once
     number_of_times_completed <- sessionsCompleted_by_protocol[names(sessionsCompleted_by_protocol) == names_of_protcols_completed_more_than_once[s]] #identify the number of times that protocol was completed
 
     ntrials_of_currentProtocol_by_session <- nrow(currentProtocol)/number_of_times_completed #identifies the number of rows of the protocol that was completed (*assumes that protocols repeated had an equal number of trials*)
 
+    templist <- list() #create a temporary list outside of the loop
 
     #Within the current loop, a dataframe is created printing a value (n) by the number of trials that were completed and then saves it in a list
     for(n in 1:number_of_times_completed){ #for 1 : the number of times a protocol was completed
