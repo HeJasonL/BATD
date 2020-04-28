@@ -17,11 +17,13 @@
 
 BATD_extract_NF <- function(list_of_filenames, Site){
 
-  # #Section left for developer debugging ----
-  # setwd("~/Dropbox/Documents/Data repository/Tactile Data/Raw/New Format/Toronto/ARBA1")
-  # list_of_filenames <- list.files(pattern = "-")[14] #list the txt files containing participant's performance
-  # Site <- ("ARBA4")
-  # debugging <- "on"
+  # debugging = "off"
+
+  #Section left for developer debugging ----
+  debugging <- "on"
+  setwd("~/Dropbox/Documents/Data repository/Tactile Data/Raw/New Format/Toronto/ARBA1")
+  list_of_filenames <- list.files(pattern = "-") #list the txt files containing participant's performance
+  Site <- ("ARBA1")
 
   '%ni%' <- Negate('%in%') #create the function for %not in%
   inputDirectory <- getwd()
@@ -34,6 +36,7 @@ BATD_extract_NF <- function(list_of_filenames, Site){
   allParticipantsOutput <- list()
 
   #For loop through the participants identified in the inputDirectory ----
+
   for(p in 1:length(list_of_filenames)){
     #p <- 1
     setwd(inputDirectory) #set working directory
@@ -77,8 +80,8 @@ BATD_extract_NF <- function(list_of_filenames, Site){
       # (2) Extract Protocol Details ----
       protocol <- as.character(output$V2[output$V1=="protocol"])
       date <- substr(gsub("T","",(output$V2[output$V1=="date"][1])), 1,10)
-      numberofPracticeTrials <- as.character(output$V2[output$V1=="numTrials"][1])
-      numberofTestTrials <- as.character(output$V2[output$V1=="numTrials"][2])
+      numberofPracticeTrials <- as.character(output$V2[output$V1=="numTrainingTrials"][1])
+      numberofTestTrials <- as.character(output$V2[output$V1=="numTrials"][1])
       stim1amplitude <- as.character(output$V2[output$V1=="amplitude"])[1]
       stim2amplitude <- as.character(output$V2[output$V1=="amplitude"])[2]
       astim1amplitude <- as.character(output$V2[output$V1=="amplitude"])[3]
@@ -168,6 +171,7 @@ BATD_extract_NF <- function(list_of_filenames, Site){
     }
 
     ##SECTION 2 ----
+
     #Accounting for session ----------------
     #Where this code (BATD_extract_NF) differs from the old format (BATD_extract_OF) is that sessions are not accounted for within the same folder, but rather, are accounted for posthoc (i.e., after all the data for a given participant is  combined)
     #In the old format, a participant who does the same session twice will have data stored in the same folder, whereas in the new format, this was not the case (at least at JHU/KKI)
@@ -183,7 +187,6 @@ BATD_extract_NF <- function(list_of_filenames, Site){
     names_of_protcols_completed_more_than_once <- unique(participantTactileData_with_protocols_completed_more_than_once$protocolName)
 
     list_of_labelled_protocols_completed_more_than_once <- list()
-
 
     if(length(protocols_completed_more_than_once) != 0){
     #This for loop identifies the protocols that have been completed more than once, identifies the number of times that protocol was completed and then assigns the column sessions to denote this ----
@@ -234,11 +237,6 @@ BATD_extract_NF <- function(list_of_filenames, Site){
 
     ## SECTION 3 ----
 
-    #Change performance column values to numeric ----
-    allProtocolOutputs <- suppressWarnings(as.data.frame(allProtocolOutputs))
-    allProtocolOutputs[,20:25] <- suppressWarnings(sapply(allProtocolOutputs[,20:25], suppressWarnings(as.character))) #supressWarnings is on because some values are already NA and then turn into NA
-    allProtocolOutputs[,20:25] <- suppressWarnings(sapply(allProtocolOutputs[,20:25], suppressWarnings(as.numeric)))
-
     #Accounting for discrimination tasks not subtracting the comparison stimulus (this issue is specific to the new format at some sites (i.e., University of Calgary)) ----
     if(Site == "University of Calgary"){
       allProtocolOutputs$value[grep("Amplitude Discrimination", allProtocolOutputs$protocolName)] <- allProtocolOutputs$value[grep("Amplitude Discrimination", allProtocolOutputs$protocolName)]-200
@@ -251,10 +249,30 @@ BATD_extract_NF <- function(list_of_filenames, Site){
       allProtocolOutputs$sessions[allProtocolOutputs$protocolName=="Simultaneous Amplitude Discrimination"][25:52] <- 2
     }
 
+    #Splitting performance up by date
+    dates <- unique(allProtocolOutputs$date)
+    list_for_output_separated_by_date <- list()
+
+    for(d in 1:length(dates)){
+      allProtocolsOutput_timepointX <- allProtocolOutputs[allProtocolOutputs$date==dates[d],]
+      allProtocolsOutput_timepointX$timepoint <- d
+      list_for_output_separated_by_date[[d]] <- allProtocolsOutput_timepointX
+    }
+
+    allProtocolOutputs <- as.data.frame(data.table::rbindlist(list_for_output_separated_by_date))
+
+
+    # SECTION 4 ----
+
+    #Change performance column values to numeric ----
+    allProtocolOutputs <- suppressWarnings(as.data.frame(allProtocolOutputs))
+    allProtocolOutputs[,20:25] <- suppressWarnings(sapply(allProtocolOutputs[,20:25], suppressWarnings(as.character))) #supressWarnings is on because some values are already NA and then turn into NA
+    allProtocolOutputs[,20:25] <- suppressWarnings(sapply(allProtocolOutputs[,20:25], suppressWarnings(as.numeric)))
+
     #Create column(s) to detail the extraction process ----
     allProtocolOutputs$site <- Site
     allProtocolOutputs$format <- "NF" #Specify that the format of the data is the old format
-    allProtocolOutputs$extractedBy <- "BATD V.1.3" #Specify that the data was extracted by BATD version V.X.X
+    allProtocolOutputs$extractedBy <- "BATD V.1.4" #Specify that the data was extracted by BATD version V.X.X
 
     #Save the extracted file for each participant in the output directory -----
     currentDirectory <- getwd() #remember the current wd
@@ -265,8 +283,7 @@ BATD_extract_NF <- function(list_of_filenames, Site){
     print(paste("Extracted participant:", id))
   }
 
-  ## SECTION 4 ----
-
+  ## SECTION 5 ----
   allParticipantsOutput_combined <-  as.data.frame(data.table::rbindlist(allParticipantsOutput, fill = TRUE))
   setwd(inputDirectory)
   dir.create("combined", showWarnings = FALSE) #set the wd to the folder where you wish to save the combined data to
