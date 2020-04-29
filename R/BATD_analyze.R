@@ -72,7 +72,7 @@ BATD_analyze <- function(dataframe){
         b <- lag(sessionData$value,1)
         reversals <- as.data.frame(cbind(b,a))
         colnames(reversals) <- c("valueprior", "value")
-        reversals$valuediff <- reversals$value-reversals$valueprior #value differnece
+        reversals$valuediff <- reversals$value-reversals$valueprior #value difference
         reversals$valuediffprior <- lead(reversals$valuediff,1)
         reversals$sign <- sign(reversals$valuediff)
         reversals$signs <- lead(sign(reversals$valuediff),1)
@@ -124,6 +124,12 @@ BATD_analyze <- function(dataframe){
         ifelse(protocol=="Temporal Order Judgement with Carrier", "_TOJwc",
         ifelse(protocol=="Duration Discrimination", "_DD", NA))))))))))))))))
         colnames(outPut) <- paste0(colnames(outPut), tag)
+
+        #Extract protocol details from sessionData
+        timePoint <- sessionData$timepoint[1]
+        dateCompleted <- sessionData$date[1]
+        protocolDetails <- cbind(timePoint, dateCompleted)
+        outPut <- cbind(outPut, protocolDetails)
 
         analyzed_protocols_list[[p]] <- outPut
       }

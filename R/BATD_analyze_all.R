@@ -36,18 +36,21 @@ BATD_analyze_all <- function(dataframe) {
       sessionData <- data[data$session == s, ]  #Subset to the nth session
       sessionData <- sessionData[!is.na(sessionData$id), ]  #remove rows where the id is NA (an old fix that I'm afraid to remove)
 
-      sessions_outPut_list[[s]] <- as.data.frame(BATD_analyze(sessionData))
+      sessions_outPut_list[[s]] <- as.data.frame(BATD_analyze(sessionData)) #Run the data through the BATD_analyze function
     }
 
     # Combine the output from the sessions_outPut_list
     sessionsData_combined <- plyr::rbind.fill(sessions_outPut_list)  #combine the sessions output from sessions_outPut_list
     sessionsData_combined$sessions <- 1:nrow(sessionsData_combined)  #add a column which denotes session (will be based on the number of rows)
+    #need to add a column here for time point
     participants_outPut_list[[x]] <- sessionsData_combined
   }
 
   all <- plyr::rbind.fill(participants_outPut_list)
   all <- all[!is.na(all$id), ]
   all$site <- sessionData$site[1]
+  all$timePoint <- sessionData$timepoint[1]
+  all$analyzedBy <- c("BATD V.1.4")
 
 
   # baseDirectory <- getwd() dir.create('Combined Data', showWarnings = FALSE)
