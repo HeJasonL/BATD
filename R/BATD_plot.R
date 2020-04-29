@@ -18,11 +18,12 @@ BATD_plot <- function(data){
   Version <- c("BATD_V.1.5")
 
   #DEBUGGING ----
-  debugging <- "on"
+  debugging <- "off"
   if(debugging=="on"){
     print("Note: Debugging on")
     data <- ARBA1[ARBA1$id=="pond-0055",]
     data <- data[data$session==1,]
+    data <- data[data$run==1,]
   }
 
 

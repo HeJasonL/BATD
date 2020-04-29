@@ -23,7 +23,6 @@ BATD_plot_all <- function(extracted_Data){
     extracted_Data <- ARBA1
   }
 
-
   extracted_Data <- extracted_Data[!is.na(extracted_Data$id),]
   uniqueParticipants <- unique(extracted_Data$id)
   uniqueParticipants <- uniqueParticipants[!is.na(uniqueParticipants)]

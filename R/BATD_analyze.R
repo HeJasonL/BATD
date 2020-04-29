@@ -24,83 +24,19 @@ BATD_analyze <- function(dataframe){
   debugging <- "off"
   if(debugging=="on"){
     print("Note: Debugging on")
-    dataframe <- ARBA1[ARBA1$id=="pond-0440",]
+    dataframe <- ARBA1
     dataframe <- dataframe[dataframe$session==1,]
   }
 
-  #SECTION 1 ----
 
-  data <- dataframe
-  data <- data[!is.na(data$protocolName),]
-  protocolsCompleted <- as.character(unique(data$protocolName))
-  protocolsCompleted <- protocolsCompleted[!is.na(protocolsCompleted)]
-
-  #Identify whether there were any protocols completed more than once ----
-  list_of_protocols_completed_with_runs <- list()
-  for(p in 1:length(protocolsCompleted)){
-    protocolName <- protocolsCompleted[p]
-    numberofRuns <- nlevels(as.factor(data$orderCompleted[data$protocolName==protocolsCompleted[p]]))
-    ProtocolRuns <- as.data.frame(cbind(protocolName, numberofRuns))
-
-    list_of_protocols_completed_with_runs[[p]] <- ProtocolRuns
-  }
-
-  protocols_completed_by_runs <- plyr::rbind.fill(list_of_protocols_completed_with_runs)
-  protocols_completed_by_runs$numberofRuns <- as.numeric(as.character(protocols_completed_by_runs$numberofRuns))
-  names_of_protocols_completed_more_than_once <- protocols_completed_by_runs$protocolName[protocols_completed_by_runs$numberofRuns > 1]
-
-  #Create a column called run (and give number referring to the run number) ----
-
-  #protocols completed more than once
-  if(length(names_of_protocols_completed_more_than_once) > 0){
-
-    list_of_protocols_completed_more_than_once <- list()
-    for(p in 1:length(names_of_protocols_completed_more_than_once)){
-      protocol_completed_more_than_once <- data[data$protocolName==names_of_protocols_completed_more_than_once[p],]
-      number_of_runs <- length(unique(protocol_completed_more_than_once$orderCompleted))
-      run_number <- unique(protocol_completed_more_than_once$orderCompleted)
-
-      list_of_runs <- list()
-      for(r in 1:number_of_runs){
-        currentRun <- protocol_completed_more_than_once[protocol_completed_more_than_once$orderCompleted==run_number[r],]
-        currentRun$run <- r
-        list_of_runs[[r]] <- currentRun
-      }
-
-      protocol_completed_more_than_once <- plyr::rbind.fill(list_of_runs)
-      list_of_protocols_completed_more_than_once[[p]] <- protocol_completed_more_than_once
-    }
-
-    protocols_completed_more_than_once <- plyr::rbind.fill(list_of_protocols_completed_more_than_once)
-  }
-
-
-  #protocols completed once
-  if(length(names_of_protocols_completed_more_than_once) > 0){
-    protocol_completed_just_once <- data[data$protocolName!=names_of_protocols_completed_more_than_once[p],]
-    protocol_completed_just_once$run <- 1
-  } else {
-    protocol_completed_just_once <- data
-    protocol_completed_just_once$run <- 1
-  }
-
-
-
-  #Recombine the protocols completed just once back with the protocosl completed more than once ----
-  if(length(names_of_protocols_completed_more_than_once) > 0){
-  combined_protocol_data <- rbind(protocols_completed_more_than_once, protocol_completed_just_once)
-  } else {
-    combined_protocol_data <- protocol_completed_just_once
-  }
-
-  maximum_number_of_runs <- max(protocols_completed_by_runs$numberofRuns)
+  maximum_number_of_runs <- max(dataframe$run)
 
   #SECTION 2 ----
   list_of_protocols_by_run <- list()
   for(r in 1:maximum_number_of_runs){
     #Subset the data by the run and analyze the data
 
-    data <- combined_protocol_data[combined_protocol_data$run==r,]
+    data <- dataframe[dataframe$run==r,] #SUBSET
     protocolsCompleted <- as.character(unique(data$protocolName))
     protocolsCompleted <- protocolsCompleted[!is.na(protocolsCompleted)]
 
