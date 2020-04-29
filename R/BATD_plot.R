@@ -14,13 +14,19 @@
 
 BATD_plot <- function(data){
 
-'%ni%' <- Negate('%in%') #create the function for %not in%
+  ##Version
+  Version <- c("BATD_V.1.5")
 
-baseDirectory <- getwd()
-dir.create("Plots", showWarnings = FALSE) #Creates a directory to put the combined .csv file into
-setwd(paste0(baseDirectory,"/Plots")) #Switch to a folder to save the plots
+  #DEBUGGING ----
+  debugging <- "on"
+  if(debugging=="on"){
+    print("Note: Debugging on")
+    data <- ARBA1[ARBA1$id=="pond-0055",]
+    data <- data[data$session==1,]
+  }
 
-  #Setup -----
+
+  #Set themes and functions ----
   theme_JH = ggplot2::theme(
     text = ggplot2::element_text(size = 12, family = "Helvetica"),
     plot.tag = ggplot2::element_text(size = 20, face = "bold"),
@@ -41,6 +47,17 @@ setwd(paste0(baseDirectory,"/Plots")) #Switch to a folder to save the plots
 
   cols <- c("0" = "red", "1" = "royalblue", "-" = "gray") #0's are incorrect, coded as red, and 1's are correct, coded as blue
 
+  '%ni%' <- Negate('%in%') #create the function for %not in%
+
+
+
+
+  #Setup -----
+
+  baseDirectory <- getwd()
+  dir.create("Plots", showWarnings = FALSE) #Creates a directory to put the combined .csv file into
+  setwd(paste0(baseDirectory,"/Plots")) #Switch to a folder to save the plots
+
   sessions <- unique(data$session) #Identifies the number of sessions completed outside of the loop
   plots_of_protocols_completed <- list() #Create a list for the plots of protocols completed to be put in
   plots_of_protocols_by_session <- list() #creates a list for the plots by session to go in
@@ -55,6 +72,8 @@ setwd(paste0(baseDirectory,"/Plots")) #Switch to a folder to save the plots
 #For loop across protocols completed by a given participant ----
     for(completed in protocols_completed){
       Data <- temp[temp$protocolName==completed,] #Reset the Data to the relevant protocol
+
+
       Analyzed_data <- BATD_analyze(Data) #BATD_analyze the data to get the performance metrics
       colnames(Analyzed_data) <- gsub("_.*", "",colnames(Analyzed_data)) #strip the tags (makes universally consistent across protocols)
 
@@ -149,7 +168,7 @@ setwd(paste0(baseDirectory,"/Plots")) #Switch to a folder to save the plots
 
   #Save the plots completed by a given participant, containing all the completed protocols, for both sessions --------
   for(a in 1:length(sessions)){
-    id <- gsub(".txt","",temp$originalFilename)[1]
+    id <- gsub(".txt","",temp$id)[1]
     session <- temp$sessions[1]
     plot <- plots_of_protocols_by_session[[a]]
     plot <- ggpubr::annotate_figure(plot, top = ggpubr::text_grob(paste0("Participant: ", id, "; Session: ", a), color = "black", face = "italic", size = 15))

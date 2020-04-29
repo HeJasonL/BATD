@@ -17,13 +17,16 @@
 
 BATD_extract_NF <- function(list_of_filenames, Site){
 
-  # debugging = "off"
+  ##Version
+  Version <- c("BATD_V.1.5")
 
-  #Section left for developer debugging ----
-  debugging <- "on"
-  setwd("~/Dropbox/Documents/Data repository/Tactile Data/Raw/New Format/Toronto/ARBA1")
-  list_of_filenames <- list.files(pattern = "-") #list the txt files containing participant's performance
-  Site <- ("ARBA1")
+  #DEBUGGING ----
+  debugging <- "off"
+  if(debugging=="on"){
+    setwd("~/Dropbox/Documents/Projects/POND Project/POND Data/ARBA1")
+    list_of_filenames <- list.files(pattern = "-") #list the txt files containing participant's performance
+    Site <- ("ARBA1")
+  }
 
   '%ni%' <- Negate('%in%') #create the function for %not in%
   inputDirectory <- getwd()
@@ -78,8 +81,13 @@ BATD_extract_NF <- function(list_of_filenames, Site){
       participantDetails <- as.data.frame(cbind(id, race, gender, handedness, birthYear))
 
       # (2) Extract Protocol Details ----
-      protocol <- as.character(output$V2[output$V1=="protocol"])
+
       date <- substr(gsub("T","",(output$V2[output$V1=="date"][1])), 1,10)
+      site <- Site
+      format <- "NF"
+      extractedBy <- Version
+
+      protocol <- as.character(output$V2[output$V1=="protocol"])
       numberofPracticeTrials <- as.character(output$V2[output$V1=="numTrainingTrials"][1])
       numberofTestTrials <- as.character(output$V2[output$V1=="numTrials"][1])
       stim1amplitude <- as.character(output$V2[output$V1=="amplitude"])[1]
@@ -97,7 +105,7 @@ BATD_extract_NF <- function(list_of_filenames, Site){
 
       originalFilename <- list_of_filenames[p]
 
-      protocolDetails <- as.data.frame(cbind(protocol, date, numberofPracticeTrials, numberofTestTrials, ISI,
+      protocolDetails <- as.data.frame(cbind(date, site, format, extractedBy, protocol, numberofPracticeTrials, numberofTestTrials, ISI,
                                          stim1amplitude, stim2amplitude,
                                          astim1amplitude, astim2amplitude,
                                          stim1duration, stim2duration,
@@ -170,7 +178,9 @@ BATD_extract_NF <- function(list_of_filenames, Site){
       print("SECTION 1: COMPLETED")
     }
 
-    ##SECTION 2 ----
+
+
+     ##SECTION 2 ----
 
     #Accounting for session ----------------
     #Where this code (BATD_extract_NF) differs from the old format (BATD_extract_OF) is that sessions are not accounted for within the same folder, but rather, are accounted for posthoc (i.e., after all the data for a given participant is  combined)
@@ -178,62 +188,31 @@ BATD_extract_NF <- function(list_of_filenames, Site){
     #There are some cases where participants completed the same protocol twice, we need to be able to differentiate whether it was their first or second attempt
     #The attempts are always in chronological order (again, at least at JHU and KKI)
 
-    #For the protocols completed MORE than once ----
-    sessionsCompleted_by_protocol <- table(participantTactileData$protocolName[participantTactileData$trialNumber==1]) #name of all protocols completed
-    protocols_completed_more_than_once <- names(sessionsCompleted_by_protocol[sessionsCompleted_by_protocol>1]) #names of the protocols completed more than once
-    protocols_completed_once <- names(sessionsCompleted_by_protocol[names(sessionsCompleted_by_protocol) %ni% protocols_completed_more_than_once]) #names of protocols completed only once
+    #Create a column for the sessions a participant completed (based on the date) ----
+    participantTactileData$date <- as.Date(participantTactileData$date)
+    dates <- sort(unique(participantTactileData$date))
+    timePointList <- list()
+    for (d in 1:length(dates)){
+      givenDate <- participantTactileData[participantTactileData$date==dates[d],]
+      givenDate$session <- d
+      timePointList[[d]] <- givenDate}
+    participantTactileData <- plyr::rbind.fill(timePointList)
 
-    participantTactileData_with_protocols_completed_more_than_once <- participantTactileData[participantTactileData$protocolName %in% protocols_completed_more_than_once,]
-    names_of_protcols_completed_more_than_once <- unique(participantTactileData_with_protocols_completed_more_than_once$protocolName)
-
-    list_of_labelled_protocols_completed_more_than_once <- list()
-
-    if(length(protocols_completed_more_than_once) != 0){
-    #This for loop identifies the protocols that have been completed more than once, identifies the number of times that protocol was completed and then assigns the column sessions to denote this ----
-
-    for(s in 1:length(names_of_protcols_completed_more_than_once)){
-      currentProtocol <- participantTactileData[participantTactileData$protocolName == names_of_protcols_completed_more_than_once[s],] #subset to the protocol completed more than once
-      currentProtocol$rowNumber <- 1:nrow(currentProtocol)
-      startofProtocol <- currentProtocol$rowNumber[currentProtocol$trialNumber==1]
-      startofProtocol[2:length(startofProtocol)] <-  startofProtocol[2:length(startofProtocol)] - 1
-
-      #Label the session number of each protocol (in 3 steps)
-
-      #1. Label all the sessions except for the last
-      tempolist <- list()
-      for(t in 1:(length(startofProtocol)-1)){
-        currentSession <- currentProtocol[startofProtocol[t]:startofProtocol[t+1],]
-        currentSession$session <- t
-        tempolist[[t]] <- currentSession
-      }
-
-      #2. Label the last session
-      lastSession <- currentProtocol[(startofProtocol[t+1]+1):nrow(currentProtocol),]
-      lastSession$session <- t + 1
-      tempolist[[t + 1]] <- lastSession
-
-      #3. Combine 'all the sessions except for the last' with the 'last session'
-      labeledProtocol <-  data.table::rbindlist(tempolist)
-      list_of_labelled_protocols_completed_more_than_once[[s]] <- labeledProtocol
+    #Split the dataframe into the sessions ----
+    sessions <- unique(participantTactileData$session)
+    sessionDataList <- list()
+    for(s in 1:length(sessions)){
+      participantData_at_s_session <- participantTactileData[participantTactileData$session==sessions[s],]
+      participantData_at_s_session$orderCompleted <- cumsum(c(0,as.numeric(diff(participantData_at_s_session$protocol))!=0)) + 1 #great a column for the completion order of the protocols
+      sessionDataList[[s]] <- participantData_at_s_session
     }
-      protocols_completed_more_than_once <- as.data.frame(data.table::rbindlist(list_of_labelled_protocols_completed_more_than_once, fill = TRUE))
-    }
-
-    #Only do if participants have protocols that they completed once
-    if(length(protocols_completed_once) != 0){
-      #For the protocols completed once ----
-      protocols_completed_once <- participantTactileData[participantTactileData$protocolName %in% protocols_completed_once,]
-      protocols_completed_once$rowNumber <- 1:nrow(protocols_completed_once)
-      protocols_completed_once$session <- 1
-      #Recombine the dataframes for protocols completed more than once and just once ----
-      allProtocolOutputs <- rbind(protocols_completed_more_than_once, protocols_completed_once)
-    } else {
-      allProtocolOutputs <- protocols_completed_more_than_once
-    }
+    participantTactileData <- plyr::rbind.fill(sessionDataList)
 
     if(debugging=="on"){
       print("SECTION 2: COMPLETED")
     }
+
+    allProtocolOutputs <- participantTactileData
 
     ## SECTION 3 ----
 
@@ -249,30 +228,20 @@ BATD_extract_NF <- function(list_of_filenames, Site){
       allProtocolOutputs$sessions[allProtocolOutputs$protocolName=="Simultaneous Amplitude Discrimination"][25:52] <- 2
     }
 
-    #Splitting performance up by date
-    dates <- unique(allProtocolOutputs$date)
-    list_for_output_separated_by_date <- list()
-
-    for(d in 1:length(dates)){
-      allProtocolsOutput_timepointX <- allProtocolOutputs[allProtocolOutputs$date==dates[d],]
-      allProtocolsOutput_timepointX$timepoint <- d
-      list_for_output_separated_by_date[[d]] <- allProtocolsOutput_timepointX
+    if(debugging=="on"){
+      print("SECTION 3: COMPLETED")
     }
 
-    allProtocolOutputs <- as.data.frame(data.table::rbindlist(list_for_output_separated_by_date))
-
-
-    # SECTION 4 ----
+    # SECTION 4 (tidying up the dataframe) ----
 
     #Change performance column values to numeric ----
     allProtocolOutputs <- suppressWarnings(as.data.frame(allProtocolOutputs))
     allProtocolOutputs[,20:25] <- suppressWarnings(sapply(allProtocolOutputs[,20:25], suppressWarnings(as.character))) #supressWarnings is on because some values are already NA and then turn into NA
     allProtocolOutputs[,20:25] <- suppressWarnings(sapply(allProtocolOutputs[,20:25], suppressWarnings(as.numeric)))
 
-    #Create column(s) to detail the extraction process ----
-    allProtocolOutputs$site <- Site
-    allProtocolOutputs$format <- "NF" #Specify that the format of the data is the old format
-    allProtocolOutputs$extractedBy <- "BATD V.1.4" #Specify that the data was extracted by BATD version V.X.X
+   #move the session column to be earlier in the dataframe
+   # allProtocolOutputs <- allProtocolOutputs[, c(1:10, 31, 11:30)]
+
 
     #Save the extracted file for each participant in the output directory -----
     currentDirectory <- getwd() #remember the current wd
@@ -283,6 +252,10 @@ BATD_extract_NF <- function(list_of_filenames, Site){
     print(paste("Extracted participant:", id))
   }
 
+  if(debugging=="on"){
+    print("SECTION 4: COMPLETED")
+  }
+
   ## SECTION 5 ----
   allParticipantsOutput_combined <-  as.data.frame(data.table::rbindlist(allParticipantsOutput, fill = TRUE))
   setwd(inputDirectory)
@@ -291,6 +264,10 @@ BATD_extract_NF <- function(list_of_filenames, Site){
   setwd(combinedDirectory)
   write.csv(allParticipantsOutput_combined, file = "BATD_extracted_combined.csv")
   setwd(inputDirectory)
+
+  if(debugging=="on"){
+    print("SECTION 5: COMPLETED")
+  }
 
   print(paste0("Combined extracted data saved in:", combinedDirectory))
 
