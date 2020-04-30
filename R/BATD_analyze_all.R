@@ -16,8 +16,6 @@
 
 BATD_analyze_all <- function(dataframe) {
 
-  ##Version
-  Version <- c("BATD_V.1.5")
 
   #DEBUGGING ----
   debugging <- "off"
@@ -25,6 +23,9 @@ BATD_analyze_all <- function(dataframe) {
     print("Note: Debugging on")
     dataframe <- ARBA1
   }
+
+  ##Version
+  Version <- c("BATD_V.1.5")
 
   uniqueParticipants <- unique(dataframe$id)
   uniqueParticipants <- uniqueParticipants[!is.na(uniqueParticipants)]

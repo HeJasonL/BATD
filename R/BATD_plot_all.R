@@ -30,12 +30,11 @@ BATD_plot_all <- function(extracted_Data){
 
   for(x in 1:length(uniqueParticipants)){
     data <- extracted_Data[extracted_Data$id==uniqueParticipants[x],]
-    protocolsCompleted <- as.character(unique(data$protocolName))
-    print(paste0("Now plotting participant:", uniqueParticipants[x]))
-
-    data <- data[data$session==1,]
-
-    BATD_plot(data)
+    sessions <- unique(data$session)
+    for(s in sessions){
+      sessionData <- data[data$session==sessions[s],]
+      print(paste0("Now plotting participant:", uniqueParticipants[x], " session: ", s))
+      BATD_plot(sessionData)
+    }
   }
-
 }

@@ -14,36 +14,38 @@
 
 BATD_analyze <- function(dataframe){
 
-  ##Version
+  ##VERSION ----
   Version <- c("BATD_V.1.5")
-
-  '%ni%' <- Negate('%in%') #create the function for %not in%
-  library(dplyr) #for some reason I can't call 'lead' or 'lag' without reading in the dplyr library
 
   #DEBUGGING ----
   debugging <- "off"
   if(debugging=="on"){
     print("Note: Debugging on")
     dataframe <- ARBA1
+    dataframe <- dataframe[dataframe$id=="pond-0588",]
     dataframe <- dataframe[dataframe$session==1,]
+    print(paste("now analyzing:", dataframe$id[1]))
   }
 
+  '%ni%' <- Negate('%in%') #create the function for %not in%
+  library(dplyr) #for some reason I can't call 'lead' or 'lag' without reading in the dplyr library
 
-  maximum_number_of_runs <- max(dataframe$run)
+  ## SECTION 1 (setup) ----
+  dataframe <- dataframe #redundant code but useful for debugging (ignore)
+  unique_number_of_runs <- unique(dataframe$run) #identify the unique number of runs completed
 
-  #SECTION 2 ----
   list_of_protocols_by_run <- list()
-  for(r in 1:maximum_number_of_runs){
+  for(r in unique_number_of_runs){
     #Subset the data by the run and analyze the data
 
-    data <- dataframe[dataframe$run==r,] #SUBSET
-    protocolsCompleted <- as.character(unique(data$protocolName))
-    protocolsCompleted <- protocolsCompleted[!is.na(protocolsCompleted)]
+    data <- dataframe[dataframe$run==r,] #Subset to the current run
+    protocolsCompleted <- as.character(unique(data$protocolName)) #identify the number of protocols completed
+    protocolsCompleted <- protocolsCompleted[!is.na(protocolsCompleted)] #legacy: remove any NAs (haven't tested without this line yet)
 
-    #Extract id
-    id <- as.character(data$id[1])
+    ## SECTION 2 (extract the participant and protocol details) ----
 
     #Extract participant details
+    id <- as.character(data$id[1])
     race <- as.character(data$race[1])
     gender <- as.character(data$gender[1])
     handedness <- as.character(data$handedness[1])
@@ -58,24 +60,21 @@ BATD_analyze <- function(dataframe){
 
     protocolDetails <- cbind(dateTested, extractedBy, run)
 
-    #SECTION 3 ----
+    ## SECTION 2 (Analyze each of the protocols completed identified in SECTION 1)----
 
-    # Create external lists -----
-    analyzed_protocols_list <- list()
-    #For loops which subsets into the nth protocol completed for a given session ----
+    analyzed_protocols_list <- list()  # Create an external list to put the analyzed protocols
 
-    for(p in 1:length(protocolsCompleted)){
+    for(p in 1:length(protocolsCompleted)){  #For loops which subsets into the nth protocol completed for a given session
 
       #Basic cleaning of dataframe ----
-      protocol <- protocolsCompleted[p]
+      protocol <- protocolsCompleted[p] #state the current protocol (legacy: haven't tried running without this yet)
       protocolData <- data[data$protocolName==protocolsCompleted[p],] #Subset to relevant protocol
-
-      # if(nrow(data)==0){next}
+      if(nrow(data)==0){next} #(legacy)
 
       sessionData <- protocolData
 
       #Change performance column values to numeric ----
-      sessionData <- sessionData[!is.na(sessionData$trialNumber),] #First, remove any rows where there are more trial numbers than you would reasonably expect
+      sessionData <- sessionData[!is.na(sessionData$trialNumber),] #remove any trials without a trial number (legacy)
       sessionData$responseTime <- as.numeric(as.character(sessionData$responseTime)) #turn responseTime to numeric
       sessionData$correctResponse <- as.numeric(as.character(sessionData$correctResponse)) #turn correctResponse to numeric
       sessionData$value <- as.numeric(as.character(sessionData$value)) #turn string variables into numeric
@@ -83,14 +82,14 @@ BATD_analyze <- function(dataframe){
       numberofPracticeTrials <- as.numeric(as.character(sessionData$numberofPracticeTrials[1])) + 1 #adding one so that the trials start AFTER the n of practice trials
 
       #here we remove the practice trials if the n > 10, this is because some sites actually ran a whole protocol as a practice, rather than the first n-numnber of trials (usually 3)
-      #If prctice trials were ran as a whole protocol, thye are just treated as a protocol
+      #If practice trials were ran as a whole protocol, thye are just treated as a protocol
       if(numberofPracticeTrials < 9){
         sessionData <- sessionData[numberofPracticeTrials:nrow(sessionData),] #remove practice trials
         sessionData$trialNumber <- 1:nrow(sessionData) #reset trial numbers
       }
 
       sessionData_for_thresholds <- sessionData
-      sessionData <- sessionData[!is.na(sessionData$response),] #some protocols had a last trial where a response was not made, this response is not included
+      sessionData <- sessionData[!is.na(sessionData$response),] #some protocols had a last trial where a response was not made, this response is not included (CONSIDER MAKING THIS BASED ON SITE)
 
       #General variables ----
       medianRT <- median(sessionData$responseTime, na.rm = TRUE)
@@ -119,18 +118,27 @@ BATD_analyze <- function(dataframe){
           middle <- length(correctResponses)/2
           median6 <- correctResponses[(middle-3):(middle+2)]
           meanRT <- mean(median6)
-
         } else {
-
           meanRT <- NA}}
       #For the tactile threshold protocols
+        #Estimate Threshold
       if(protocol %ni% c("Simple Reaction Time","Choice Reaction Time")){
         sessionData <- sessionData_for_thresholds
         threshold <- mean(sessionData$value[(nrow(sessionData)-4):(nrow(sessionData))])
       }
+      #Estimate Threshold for dynamic detection threshold (done differently)
       if(protocol %in% c("Dynamic Detection Threshold")){
         sessionData <- sessionData_for_thresholds
         threshold <- mean(sessionData$value[sessionData$correctResponse==1])
+      }
+      if(protocol %in% c("Simultaneous Amplitude Discrimination",
+                         "Sequential Amplitude Discrimination",
+                         "Dual Staircase Amplitude Discrimination (up)",
+                         "Dual Staircase Amplitude Discrimination (down)")){
+        threshold <- threshold - 100 #remove the standard stimulus from threshold
+      }
+      if(protocol %in% c("Duration Discrimination")){
+        threshold <- threshold - 500
       }
 
       #Column bind variables -----
@@ -138,6 +146,7 @@ BATD_analyze <- function(dataframe){
         outPut <- cbind(accuracy, medianRT, sdRT, meanRT)}else{outPut <- cbind(accuracy, medianRT, sdRT, threshold, reversals)}
 
       #Add a tag to the end of the column names to specify which protocol the outPut is from ----
+
       tag <- ifelse(protocol=="Simple Reaction Time", "_SRT",
                     ifelse(protocol=="Choice Reaction Time", "_CRT",
                            ifelse(protocol=="Static Detection Threshold", "_SDT",
@@ -147,13 +156,15 @@ BATD_analyze <- function(dataframe){
                                                        ifelse(protocol=="Amplitude Discrimination Threshold without Adaptation", "_ADT",
                                                               ifelse(protocol=="Amplitude Discrimination with Single Site Adaptation", "_ADTssa",
                                                                      ifelse(protocol=="Amplitude Discrimination with Dual Site Adaptation", "_ADTdsa",
-                                                                            ifelse(protocol=="Simultaneous Frequency Discrimination", "_SMFD",
-                                                                                   ifelse(protocol=="Sequential Frequency Discrimination", "_SQFD",
+                                                                            ifelse(protocol=="Dual Staircase Amplitude Discrimination (up)", "_ADTdsa_up",
+                                                                               ifelse(protocol=="Dual Staircase Amplitude Discrimination (down)", "_ADTdsa_down",
+                                                                                  ifelse(protocol=="Simultaneous Frequency Discrimination", "_SMFD",
+                                                                                    ifelse(protocol=="Sequential Frequency Discrimination", "_SQFD",
                                                                                           ifelse(protocol=="Simultaneous Amplitude Discrimination", "_SMAD",
                                                                                                  ifelse(protocol=="Sequential Amplitude Discrimination", "_SQAD",
                                                                                                         ifelse(protocol=="Temporal Order Judgement", "_TOJ",
                                                                                                                ifelse(protocol=="Temporal Order Judgement with Carrier", "_TOJwc",
-                                                                                                                      ifelse(protocol=="Duration Discrimination", "_DD", NA))))))))))))))))
+                                                                                                                      ifelse(protocol=="Duration Discrimination", "_DD", NA))))))))))))))))))
       colnames(outPut) <- paste0(colnames(outPut), tag)
       analyzed_protocols_list[[p]] <- outPut
     }
@@ -171,7 +182,7 @@ BATD_analyze <- function(dataframe){
   }
 
   participant_output <- plyr::rbind.fill(list_of_protocols_by_run)
-
+  participant_output
 
 
     return(participant_output)
