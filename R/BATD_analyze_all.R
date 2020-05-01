@@ -16,7 +16,6 @@
 
 BATD_analyze_all <- function(dataframe) {
 
-
   #DEBUGGING ----
   debugging <- "off"
   if(debugging=="on"){
@@ -44,7 +43,7 @@ BATD_analyze_all <- function(dataframe) {
     sessions_outPut_list <- list()  #create a list to store session data
 
     for (s in 1:length(sessions)) {
-      sessionData <- data[data$session == s, ]  #Subset to the nth session
+      sessionData <- data[data$session == sessions[s], ]  #Subset to the nth session
       sessionData <- sessionData[!is.na(sessionData$id), ]  #remove rows where the id is NA (an old fix that I'm afraid to remove)
 
       analyzed_sessions_data <- as.data.frame(BATD_analyze(sessionData)) #Run the data through the BATD_analyze function
@@ -61,13 +60,15 @@ BATD_analyze_all <- function(dataframe) {
     participants_outPut_list[[x]] <- sessionsData_combined
   }
 
+
   all <- plyr::rbind.fill(participants_outPut_list)
   all <- all[!is.na(all$id), ]
+
   all <- all[, c(1:7, #id:extractedBy
-                 48,
-                 47, #session
+                 53, #analyzedBy
+                 52, #session
                  8, #run
-                 9:46)]
+                 9:51)]
 
 
   return(all)

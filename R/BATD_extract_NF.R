@@ -35,6 +35,7 @@ BATD_extract_NF <- function(list_of_filenames, Site){
     outputDirectory <- paste0(inputDirectory,"/output") #create a variable which denotes the output directory
     allParticipantsOutput <- list()
 
+
     for(p in 1:length(list_of_filenames)){#For loop through the participants identified in the inputDirectory
       setwd(inputDirectory) #set working directory
       output <- read.csv(list_of_filenames[p], header = FALSE) #read in the current participant[p]'s file
@@ -182,10 +183,12 @@ BATD_extract_NF <- function(list_of_filenames, Site){
       participantTactileData$date <- as.Date(participantTactileData$date)
       dates <- sort(unique(participantTactileData$date))
       timePointList <- list()
-      for (d in 1:length(dates)){
+
+    for (d in 1:length(dates)){
         givenDate <- participantTactileData[participantTactileData$date==dates[d],]
         givenDate$session <- d
         timePointList[[d]] <- givenDate}
+
       participantTactileData <- plyr::rbind.fill(timePointList)
 
       #Split the dataframe into the sessions
@@ -198,9 +201,7 @@ BATD_extract_NF <- function(list_of_filenames, Site){
       }
       participantTactileData <- plyr::rbind.fill(sessionDataList)
 
-      if(debugging=="on"){
-        print("SECTION 2: COMPLETED")
-      }
+
 
       allProtocolOutputs <- participantTactileData
 
@@ -219,7 +220,7 @@ BATD_extract_NF <- function(list_of_filenames, Site){
     }
 
     if(debugging=="on"){
-      print("SECTION 3: COMPLETED")
+      print("SECTION 7: COMPLETED")
     }
 
     ## SECTION 8 (tidying up the dataframe) ----
@@ -230,23 +231,24 @@ BATD_extract_NF <- function(list_of_filenames, Site){
       allProtocolOutputs[,20:25] <- suppressWarnings(sapply(allProtocolOutputs[,20:25], suppressWarnings(as.numeric)))
 
       if(debugging=="on"){
-        print("SECTION 4: COMPLETED")
+        print("SECTION 8: COMPLETED")
       }
 
-
-    ## SECTION 9 (Saving the extracted file for each participant in the output directory) ----
+    ## SECTION 9 (Saving the extracted file for each individual participant in the output directory) ----
     currentDirectory <- getwd() #remember the current wd
     setwd(outputDirectory) #setwd to the outputDirectory
     write.csv(allProtocolOutputs, file = paste0("BATD_extracted_", list_of_filenames[p],"_NF.csv")) #save the output of all the protocols for each participant as a csv
     setwd(currentDirectory) #return to the currentDirectory
     allParticipantsOutput[[p]] <- as.data.frame(allProtocolOutputs)
     print(paste("Extracted participant:", id))
+
     if(debugging=="on"){
       print("SECTION 9: COMPLETED")
     }
   } #exit master for loop
 
   allParticipantsOutput_combined <-  as.data.frame(data.table::rbindlist(allParticipantsOutput, fill = TRUE))
+  sanityCheck <- table(allParticipantsOutput_combined$protocolName, allParticipantsOutput_combined$session)
 
   #SECTION 10 (ACCOUNTING FOR RUNS) ----
   alldata <- allParticipantsOutput_combined
@@ -258,69 +260,84 @@ BATD_extract_NF <- function(list_of_filenames, Site){
   participants_outPut_list <- list()
   participants_detail_list <- list()
 
-  for (x in 1:length(uniqueParticipants)){
-  data <- alldata[alldata$id==uniqueParticipants[x],]
-  protocolsCompleted <- as.character(unique(data$protocolName))
-  protocolsCompleted <- protocolsCompleted[!is.na(protocolsCompleted)]
 
-  #Identify whether there were any protocols completed more than once ----
-  list_of_protocols_completed_with_runs <- list()
-  for(p in 1:length(protocolsCompleted)){
-    protocolName <- protocolsCompleted[p]
-    numberofRuns <- nlevels(as.factor(data$orderCompleted[data$protocolName==protocolsCompleted[p]]))
-    ProtocolRuns <- as.data.frame(cbind(protocolName, numberofRuns))
+participant_data_after_accounting_for_runs <- list()
+for(x in 1:length(uniqueParticipants)){
+participantData <- alldata[alldata$id==uniqueParticipants[x],]
+print(paste("ID at the start of the loop:",participantData$id[x]))
+sessions <- unique(participantData$session)
 
-    list_of_protocols_completed_with_runs[[p]] <- ProtocolRuns
-  }
-  protocols_completed_by_runs <- plyr::rbind.fill(list_of_protocols_completed_with_runs)
-  protocols_completed_by_runs$numberofRuns <- as.numeric(as.character(protocols_completed_by_runs$numberofRuns))
-  names_of_protocols_completed_more_than_once <- protocols_completed_by_runs$protocolName[protocols_completed_by_runs$numberofRuns > 1]
+sessions_for_loop_output <- list()
 
-  #Create a column called run (and give number referring to the run number) ----
+for(s in 1:length(sessions)){
+participantSessionData <- participantData[participantData$session==sessions[s],] #subset to the current session
+protocols_within_session_completed <- as.character(unique(participantSessionData$protocolName))
+list_of_protocols_completed_with_runs <- list()
 
-  #protocols completed more than once
+#for loop for creating a table of protocolNames and the number of runs for each protocolName ----
+for(p in 1:length(protocols_within_session_completed)){
+protocolName <- protocols_within_session_completed[p]
+numberofRuns <- nlevels(as.factor(participantSessionData$orderCompleted[participantSessionData$protocolName==protocols_within_session_completed[p]]))
+ProtocolRuns <- as.data.frame(cbind(protocolName, numberofRuns))
+list_of_protocols_completed_with_runs[[p]] <- ProtocolRuns
+}
+
+protocols_completed_by_runs <- plyr::rbind.fill(list_of_protocols_completed_with_runs) #table with protocolNames and the number of runs for each protocolName
+protocols_completed_by_runs$numberofRuns <- as.numeric(as.character(protocols_completed_by_runs$numberofRuns))
+names_of_protocols_completed_more_than_once <- protocols_completed_by_runs$protocolName[as.numeric(as.character(protocols_completed_by_runs$numberofRuns)) > 1]
+names_of_protocols_completed_only_once <- protocols_completed_by_runs$protocolName[protocols_completed_by_runs$numberofRuns == 1]
+
+#Create a column called run (and give number referring to the run number) ----
+  #protocols completed more than once ----
   if(length(names_of_protocols_completed_more_than_once) > 0){
+  #1. Identify which protocols were completed more than once, and how many times they were completed more than once
+  #2. subset to the protocol completed more than once and add this to a column called run
 
-    list_of_protocols_completed_more_than_once <- list()
-    for(p in 1:length(names_of_protocols_completed_more_than_once)){
-      protocol_completed_more_than_once <- data[data$protocolName==names_of_protocols_completed_more_than_once[p],]
-      number_of_runs <- length(unique(protocol_completed_more_than_once$orderCompleted))
-      run_number <- unique(protocol_completed_more_than_once$orderCompleted)
+        list_of_protocols_completed_more_than_once <- list()
 
-      list_of_runs <- list()
-      for(r in 1:number_of_runs){
-        currentRun <- protocol_completed_more_than_once[protocol_completed_more_than_once$orderCompleted==run_number[r],]
-        currentRun$run <- r
+        for(o in 1:length(names_of_protocols_completed_more_than_once)){
+        protocol_completed_more_than_once <- participantSessionData[participantSessionData$protocolName==names_of_protocols_completed_more_than_once[o],] #subset to the protocol completed more than once
+        number_of_runs <- length(unique(protocol_completed_more_than_once$orderCompleted)) #identifies the number of runs
+        run_number <- unique(protocol_completed_more_than_once$orderCompleted) #identifies the run number
+
+        list_of_runs <- list()
+        for(r in 1:number_of_runs){
+        currentRun <- protocol_completed_more_than_once[protocol_completed_more_than_once$orderCompleted==run_number[r],] #subset to the 'r' unique run, given by the orderCompleted
+        currentRun$run <- r #apply run number to column
         list_of_runs[[r]] <- currentRun
-      }
+        }
+        protocol_completed_more_than_once <- plyr::rbind.fill(list_of_runs)
+        list_of_protocols_completed_more_than_once[[p]] <- protocol_completed_more_than_once
+        }
+        all_protocols_completed_more_than_once <- plyr::rbind.fill(list_of_protocols_completed_more_than_once)
 
-      protocol_completed_more_than_once <- plyr::rbind.fill(list_of_runs)
-      list_of_protocols_completed_more_than_once[[p]] <- protocol_completed_more_than_once
-    }
+  }#end of if length(names_of_protocols_completed_more_than_once > 0)
 
-    protocols_completed_more_than_once <- plyr::rbind.fill(list_of_protocols_completed_more_than_once)
-  }
+  #protocols completed only once ----
+  if(length(names_of_protocols_completed_only_once) > 0){
+  all_protocols_completed_just_once <- participantSessionData[!participantSessionData$protocolName %in% names_of_protocols_completed_more_than_once,] #subset to the protocols only completed once
+  all_protocols_completed_just_once$run <- 1 #add run number
 
-
-  #protocols completed once
-  if(length(names_of_protocols_completed_more_than_once) > 0){
-    protocol_completed_just_once <- data[data$protocolName!=names_of_protocols_completed_more_than_once[p],]
-    protocol_completed_just_once$run <- 1
-  }
-
-  #Recombine the protocols completed just once back with the protocosl completed more than once ----
-  if(length(names_of_protocols_completed_more_than_once) > 0){
-    combined_protocol_data <- rbind(protocols_completed_more_than_once, protocol_completed_just_once)
-  } else {
-    combined_protocol_data <- protocol_completed_just_once
-  }
+  } #end of if length(names_of_protocols_completed_only_once > 0)
 
 
-  participants_outPut_list[[x]] <- combined_protocol_data
-  }
+#Recombine the protocols completed more than once back with the protocols completed only once ----
+if(length(names_of_protocols_completed_more_than_once) > 0){
+combined_protocol_data <- rbind(all_protocols_completed_more_than_once, all_protocols_completed_just_once)
+}
+else {combined_protocol_data <- all_protocols_completed_just_once #if there were only protocols ocompleted once, than combined_protocol-data are just the protocols completed once
+}
+sessions_for_loop_output[[s]] <- combined_protocol_data
+} #end of sessions loop
 
-  combined_protocol_data <- plyr::rbind.fill(participants_outPut_list)
+  combined_protocol_data_with_runs <- plyr::rbind.fill(sessions_for_loop_output)
 
+  participant_data_after_accounting_for_runs[[x]] <- combined_protocol_data_with_runs
+  print(paste("ID at the end of the loop:",participantData$id[x]))
+
+  } #end of participant loop
+
+  combined_participant_data_after_accounting_for_runs <- plyr::rbind.fill(participant_data_after_accounting_for_runs)
 
   if(debugging=="on"){
     print("SECTION 10: COMPLETED")
@@ -331,7 +348,7 @@ BATD_extract_NF <- function(list_of_filenames, Site){
   dir.create("combined", showWarnings = FALSE) #set the wd to the folder where you wish to save the combined data to
   combinedDirectory <- paste0(inputDirectory,"/combined") #automatically creates a folder in that directory named 'output' - if you already have a folder named output, ignore this code.
   setwd(combinedDirectory)
-  write.csv(combined_protocol_data, file = "BATD_extracted_combined.csv")
+  write.csv(combined_participant_data_after_accounting_for_runs, file = "BATD_extracted_combined.csv")
   setwd(inputDirectory)
 
   if(debugging=="on"){
@@ -340,5 +357,12 @@ BATD_extract_NF <- function(list_of_filenames, Site){
 
   print(paste0("Combined extracted data saved in:", combinedDirectory))
 
-  return(combined_protocol_data)
+  return(combined_participant_data_after_accounting_for_runs)
 }
+
+
+
+
+
+
+

@@ -22,9 +22,9 @@ BATD_analyze <- function(dataframe){
   if(debugging=="on"){
     print("Note: Debugging on")
     dataframe <- ARBA1
-    dataframe <- dataframe[dataframe$id=="pond-0588",]
-    dataframe <- dataframe[dataframe$session==1,]
-    print(paste("now analyzing:", dataframe$id[1]))
+    # dataframe <- dataframe[dataframe$id=="pond-0440",]
+    # dataframe <- dataframe[dataframe$session==1,]
+    # print(paste("now analyzing:", dataframe$id[1]))
   }
 
   '%ni%' <- Negate('%in%') #create the function for %not in%
