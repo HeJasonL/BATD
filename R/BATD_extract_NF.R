@@ -23,8 +23,9 @@ BATD_extract_NF <- function(list_of_filenames, Site){
   #DEBUGGING ----
   debugging <- "off"
   if(debugging=="on"){
-    setwd("~/Dropbox/Documents/Projects/POND Project/POND Data/ARBA1")
+    setwd("~/Dropbox/Documents/Projects/POND Project/POND Data/ARBA4")
     list_of_filenames <- list.files(pattern = "-") #list the txt files containing participant's performance
+    list_of_filenames <- list_of_filenames[3] #0340
     Site <- ("ARBA1")
   }
 
@@ -70,11 +71,11 @@ BATD_extract_NF <- function(list_of_filenames, Site){
         rownames(output) <- c() #clear the row numbers
 
         # (1) Extract Participant details ----
-        race <- as.character(output$V2[output$V1=="race"])
-        gender <- as.character(output$V2[output$V1=="gender"])
-        handedness <- as.character(output$V2[output$V1=="handedness"])
-        birthYear <- as.character(output$V2[output$V1=="birthYear"])
-        id <- as.character(output$V2[output$V1=="number"]) #is this participant id?
+        race <- as.character(output$V2[output$V1=="race"])[1]
+        gender <- as.character(output$V2[output$V1=="gender"])[1]
+        handedness <- as.character(output$V2[output$V1=="handedness"])[1]
+        birthYear <- as.character(output$V2[output$V1=="birthYear"])[1]
+        id <- as.character(output$V2[output$V1=="number"]) [1]#is this participant id?
 
         participantDetails <- as.data.frame(cbind(id, race, gender, handedness, birthYear))
 

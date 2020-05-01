@@ -30,11 +30,21 @@ BATD_plot_all <- function(extracted_Data){
 
   for(x in 1:length(uniqueParticipants)){
     data <- extracted_Data[extracted_Data$id==uniqueParticipants[x],]
-    sessions <- unique(data$session)
+
+    #identify the number of unique sessions
+    uniqueSessions <- unique(data$session)
     for(s in sessions){
-      sessionData <- data[data$session==sessions[s],]
-      print(paste0("Now plotting participant:", uniqueParticipants[x], " session: ", s))
-      BATD_plot(sessionData)
+      sessionData <- data[data$session==uniqueSessions[s],]
+
+      #identify the number of unique runs
+      uniqueRuns <- unique(sessionData$run)
+      for(r in 1:length(uniqueRuns)){
+        sessionData_for_given_run <- sessionData[sessionData$run==uniqueRuns[r],]
+        print(paste0("Now plotting participant:", uniqueParticipants[x], " session: ", s, " run: ", r))
+        BATD_plot(sessionData_for_given_run)
+      }
+
     }
+
   }
 }

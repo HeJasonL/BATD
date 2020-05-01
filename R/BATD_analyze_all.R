@@ -20,7 +20,7 @@ BATD_analyze_all <- function(dataframe) {
   debugging <- "off"
   if(debugging=="on"){
     print("Note: Debugging on")
-    dataframe <- ARBA1
+    dataframe <- ARBA4
   }
 
   ##Version
