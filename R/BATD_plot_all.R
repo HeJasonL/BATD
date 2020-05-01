@@ -33,7 +33,7 @@ BATD_plot_all <- function(extracted_Data){
 
     #identify the number of unique sessions
     uniqueSessions <- unique(data$session)
-    for(s in sessions){
+    for(s in uniqueSessions){
       sessionData <- data[data$session==uniqueSessions[s],]
 
       #identify the number of unique runs
