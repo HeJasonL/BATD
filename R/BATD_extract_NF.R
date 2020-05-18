@@ -23,9 +23,9 @@ BATD_extract_NF <- function(list_of_filenames, Site){
   #DEBUGGING ----
   debugging <- "off"
   if(debugging=="on"){
-    # setwd("~/Dropbox/Documents/Data repository/Tactile Data/Raw/New Format/KKI") #setwd to old format data from JHU
-    # list_of_filenames <- list.files(pattern = "-") #list the txt files containing participant's performance
-    # Site <- ("KKI")
+    setwd("~/Dropbox/Documents/Data repository/Tactile Data/Raw/New Format/ARBA4") #setwd to old format data from JHU
+    list_of_filenames <- list.files(pattern = "-")[3] #list the txt files containing participant's performance
+    Site <- ("ARBA4")
   }
 
    ## SECTION 1 (setup and entry into the master for loop) ----
@@ -41,6 +41,10 @@ BATD_extract_NF <- function(list_of_filenames, Site){
 
       output <- read.csv(list_of_filenames[p], header = FALSE) #read in the current participant[p]'s file
 
+      if(debugging=="on"){
+        print("SECTION 1: COMPLETED")
+      }
+
     ## SECTION 2 (cleaning) ----
     #General data cleaning prior to extraction
       output$V1 <- as.character(output$V1) #turn column 1 into a character
@@ -48,6 +52,10 @@ BATD_extract_NF <- function(list_of_filenames, Site){
       tempo <- suppressWarnings(t(as.data.frame(strsplit(output$V1,":")))) #split the string by ':' and transpose it to long format
       rownames(tempo) <- c() #clear the row numbers
       temp <- suppressWarnings(as.data.frame(tempo)) #turn the output into a dataframe
+
+      if(debugging=="on"){
+        print("SECTION 2: COMPLETED")
+      }
 
     ## SECTION 3 (splitting the dataframe into separate protocols ) ----
 
@@ -62,6 +70,11 @@ BATD_extract_NF <- function(list_of_filenames, Site){
             list[[i]] <-  temp[(paste(protocols[i])):(paste(protocols[i+1])),]
           } #loop for breaking the output into separate protocols
           list[[i]] <- temp[(paste(protocols[i])):nrow(temp),] #puts the last protocol into the list (for loop above cannot account for last protocol)
+
+          if(debugging=="on"){
+            print("SECTION 3: COMPLETED")
+          }
+
 
     ## SECTION 4 (for loop through the protocols in the folder and extracting the participant/protocol/performance details) ----
       ProtocolOutputList <- list()
@@ -132,6 +145,11 @@ BATD_extract_NF <- function(list_of_filenames, Site){
       participantTactileData$correctResponse  <- as.character(participantTactileData$correctResponse)
       participantTactileData$correctResponse[participantTactileData$correctResponse=="true"] <- "1"
       participantTactileData$correctResponse[participantTactileData$correctResponse=="false"] <- "0"
+
+      if(debugging=="on"){
+        print("SECTION 4: COMPLETED")
+      }
+
 
     ## SECTION 5 (label the protocols ) ----
       #Label protocols with names (note that this is done in a specific order since sometimes protocols share numeric codes
@@ -248,9 +266,6 @@ BATD_extract_NF <- function(list_of_filenames, Site){
     allParticipantsOutput[[p]] <- as.data.frame(allProtocolOutputs)
     print(paste("Extracted participant:", id))
 
-    if(debugging=="on"){
-      print("SECTION 9: COMPLETED")
-    }
   } #exit master for loop
 
   allParticipantsOutput_combined <-  as.data.frame(data.table::rbindlist(allParticipantsOutput, fill = TRUE))
@@ -365,10 +380,3 @@ sessions_for_loop_output[[s]] <- combined_protocol_data
 
   return(combined_participant_data_after_accounting_for_runs)
 }
-
-
-
-
-
-
-

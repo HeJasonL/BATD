@@ -21,11 +21,12 @@ BATD_analyze <- function(dataframe){
   debugging <- "off"
   if(debugging=="on"){
     print("Note: Debugging on")
-    dataframe <- ARBA1
-    # dataframe <- dataframe[dataframe$id=="pond-0440",]
+    dataframe <- newFormat_KKI
+    dataframe <- dataframe[dataframe$id=="2104-0119",]
     # dataframe <- dataframe[dataframe$session==1,]
     # print(paste("now analyzing:", dataframe$id[1]))
   }
+
 
   '%ni%' <- Negate('%in%') #create the function for %not in%
   library(dplyr) #for some reason I can't call 'lead' or 'lag' without reading in the dplyr library
