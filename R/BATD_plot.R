@@ -49,14 +49,7 @@ BATD_plot <- function(data){
   '%ni%' <- Negate('%in%') #create the function for %not in%
 
 
-
-
-
   #Setup -----
-  baseDirectory <- getwd()
-  dir.create("Plots", showWarnings = FALSE) #Creates a directory to put the combined .csv file into
-  setwd(paste0(baseDirectory,"/Plots")) #Switch to a folder to save the plots
-
   data_to_plot <- data
   protocols_completed <- as.character(unique(data_to_plot$protocolName)) #identy the protocols completed
 
@@ -164,16 +157,5 @@ BATD_plot <- function(data){
                                             nrow = 3,
                                             align = "hv")
 
-
-  #Save the plots completed by a given participant, containing all the completed protocols ----
-    id <- gsub(".txt","",data_to_plot$id)[1]
-    session <- data_to_plot$session[1]
-    run <- data_to_plot$run[1]
-    plot <- ggpubr::annotate_figure(all_plots_combined, top = ggpubr::text_grob(paste0("Participant: ", id, "; Session: ", session), color = "black", face = "italic", size = 15))
-    plot <- ggpubr::annotate_figure(plot, top = ggpubr::text_grob("Batch Analysis of Tactile Data (BATD)", color = "black", face = "bold", size = 20))
-    ggplot2::ggsave(filename = paste0(id,"_","session_", session, "_run_", run,".pdf"), plot = plot, width = 20, height = 12 )
-
-
-  setwd(baseDirectory) #Return to the baseDirectory
-
+  return(all_plots_combined)
 }

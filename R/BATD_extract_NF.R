@@ -23,10 +23,9 @@ BATD_extract_NF <- function(list_of_filenames, Site){
   #DEBUGGING ----
   debugging <- "off"
   if(debugging=="on"){
-    setwd("~/Dropbox/Documents/Projects/POND Project/POND Data/ARBA4")
-    list_of_filenames <- list.files(pattern = "-") #list the txt files containing participant's performance
-    list_of_filenames <- list_of_filenames[3] #0340
-    Site <- ("ARBA1")
+    # setwd("~/Dropbox/Documents/Data repository/Tactile Data/Raw/New Format/KKI") #setwd to old format data from JHU
+    # list_of_filenames <- list.files(pattern = "-") #list the txt files containing participant's performance
+    # Site <- ("KKI")
   }
 
    ## SECTION 1 (setup and entry into the master for loop) ----
@@ -39,6 +38,7 @@ BATD_extract_NF <- function(list_of_filenames, Site){
 
     for(p in 1:length(list_of_filenames)){#For loop through the participants identified in the inputDirectory
       setwd(inputDirectory) #set working directory
+
       output <- read.csv(list_of_filenames[p], header = FALSE) #read in the current participant[p]'s file
 
     ## SECTION 2 (cleaning) ----
@@ -217,7 +217,12 @@ BATD_extract_NF <- function(list_of_filenames, Site){
     if(Site %in% c("KKI","CCH","JHU")){
       #Note to self, this is a temporary brute force fix for the problem that we have where the number of trials completed by protocol are NOT equal
       #I will eventually need the code to recognize how many trials were completed within a given session, rather than assume it is exactly half of the total number of tirals completed
-      allProtocolOutputs$sessions[allProtocolOutputs$protocolName=="Simultaneous Amplitude Discrimination"][25:52] <- 2
+      # allProtocolOutputs$sessions[allProtocolOutputs$protocolName=="Simultaneous Amplitude Discrimination"][25:52] <- 2
+
+      #The data collected from KKI, CCH and JHU has a peculiarity where the practice trials were saved as a protocol within themselves (for only SOME protocols), something that is not the case with data collected elsewhere
+      #The code below fixes the issue by assigning all protocols to have 3 practice trials, and 20 test trials (which is *currently* true)
+      allProtocolOutputs$numberofPracticeTrials[is.na(allProtocolOutputs$numberofPracticeTrials)] <- allProtocolOutputs$numberofTestTrials[is.na(allProtocolOutputs$numberofPracticeTrials)]
+      allProtocolOutputs$numberofTestTrials <- 20
     }
 
     if(debugging=="on"){
@@ -265,7 +270,7 @@ BATD_extract_NF <- function(list_of_filenames, Site){
 participant_data_after_accounting_for_runs <- list()
 for(x in 1:length(uniqueParticipants)){
 participantData <- alldata[alldata$id==uniqueParticipants[x],]
-print(paste("ID at the start of the loop:",participantData$id[x]))
+#print(paste("ID at the start of the loop:",participantData$id[x]))
 sessions <- unique(participantData$session)
 
 sessions_for_loop_output <- list()
@@ -334,7 +339,7 @@ sessions_for_loop_output[[s]] <- combined_protocol_data
   combined_protocol_data_with_runs <- plyr::rbind.fill(sessions_for_loop_output)
 
   participant_data_after_accounting_for_runs[[x]] <- combined_protocol_data_with_runs
-  print(paste("ID at the end of the loop:",participantData$id[x]))
+  # print(paste("ID at the end of the loop:",participantData$id[x]))
 
   } #end of participant loop
 
