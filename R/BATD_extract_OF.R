@@ -15,14 +15,15 @@
 #'
 #' @export
 
-BATD_extract_OF <- function(list_of_filenames, Site) {
+BATD_extract_OF <- function(list_of_filenames, Site){
 
   #DEBUGGING ----
-  debugging <- "on"
+  debugging <- "off"
   if(debugging=="on"){
-    setwd("~/Dropbox/Documents/Data repository/Tactile Data/Raw/Old Format/KKI") #setwd to old format data from JHU
-    list_of_filenames <- list.files(pattern = "-")
-    Site <- ("KKI")
+    # setwd("~/Dropbox/Documents/Data repository/Tactile Data/Raw/Old Format/KKI") #setwd to old format data from JHU
+    # list_of_filenames <- list.files(pattern = "-")
+    # Site <- ("KKI")
+    # getwd()
   }
 
   ## SECTION 1 (setup for entry into the master for loop) ----
@@ -35,36 +36,36 @@ BATD_extract_OF <- function(list_of_filenames, Site) {
   nthProtocolOutputList <- list()  #creates a list to store the output from the nth protocol (middle loop)
   protocolOutput_for_givenSession <- list()  #creates a list to store the output from a given session (inner loop )
 
+  if(debugging=="on"){
+    print("SECTION 1: COMPLETED")
+  }
+
   ## SECTION 2 (For loop through the participants identified in the inputDirectory)
-
-  for (p in 1:length(list_of_filenames)) {
+  for (p in 1:length(list_of_filenames)){
     # list_of_filenames <- list.files(pattern = "-")
-
+    # print(p)
     # set the working directory to the participant directory and identify the
-    # protocols completed by participant[p] ----
-    #p <- 1
     setwd(paste0(inputDirectory, "/", list_of_filenames[p]))  #setwd to participant's folder [this folder contains another folder named as the date of when the particpant completed the task]
     participantsFolder <- getwd()
     filesinFolder <- list.files(pattern = "-")  #We want to specify the folder named as the date of testing and nothing else (it must have have a '-' that splits the dates)
     datefileinFolder <- filesinFolder[!grepl(".csv", filesinFolder)]  #Then, we want to make sure we don't pick up any .csvs (which also tends to be present in these folders)
+
     setwd(paste0(participantsFolder, "/", datefileinFolder))  #set the working directory to the folder (datefileinFolder) which contains all the protocols
     protocolsFolder <- getwd()
-
     protocolsinfolder <- list.files()  #list all the files in the protocolsFolder
-    protocolsinprotocolsFolder <- protocolsinfolder[!stringr::str_length(protocolsinfolder) >
-      3]  #subset to only the folders with a str length of 3, since all protocols have a 3 digit identifier
+    protocolsinprotocolsFolder <- protocolsinfolder[!stringr::str_length(protocolsinfolder) > 3]  #subset to only the folders with a str length of 3, since all protocols have a 3 digit identifier
 
     # For loop through the protocols in the protocolsFolder and extract the
     # participant/protocol/performance details ----
-    for (n in 1:length(protocolsinprotocolsFolder)) {
-      #n <- 1
+    for (n in 1:length(protocolsinprotocolsFolder)){
       setwd(paste0(protocolsFolder, "/", protocolsinprotocolsFolder[n]))  #set then set the directory to the n^th protocol
       protocolOutputs <- list.files(pattern = "1-")  #identify the particpant files (the pattern '1-' refers to the protocol output files)
 
       if (identical(list.files(pattern = ".txt"), character(0)))
         {
+        print("next was run")
           next
-        }  #This is a short piece of code to test whether the folder has any items within the folder
+        }#This is a short piece of code to test whether the folder has any items within the folder
       # This needs to exist because while all the folders for each protocol are
       # present, the participant may not have completed the protocol (i.e., the folder
       # is empty) This is an issue specific to the old format, the 'next' just skips
@@ -74,6 +75,7 @@ BATD_extract_OF <- function(list_of_filenames, Site) {
       # one session or attempt for a given protocol ---- The following is nested in a
       # for loop because some participants may have completed a given protocol more
       # than once (s stands for sesson here)
+
       for (s in 1:length(protocolOutputs)) {
         output <- read.csv(protocolOutputs[s], header = FALSE, sep = "\t")  #read in the current protocol for the current session (s), and assign it to a dataframe named output
 
@@ -111,13 +113,13 @@ BATD_extract_OF <- function(list_of_filenames, Site) {
         protocolDetails <- as.data.frame(output$V2[output$V1 == "Protocol_ID"])  #protocol id
         protocolDetails$originalFilename <- protocolOutputs[s]
         colnames(protocolDetails)[1] <- "protocol"
-        protocolDetails$numberofPracticeTrials <- "0"
+        protocolDetails$numberofPracticeTrials <- as.factor("0")
         # protocolDetails$numberofTestTrials <- output$V2[output$V1 == "Number_of_Trials"]
 
         #Determine the number of trials by reading in the file itself (rather than rely on the trial information dataframe used above)
         protocolTrialDetails <- list.files(pattern = "2-")  #identify the participantPerformance file
         protocolTrialDetails <- read.csv(protocolTrialDetails[s], header = TRUE, sep = "\t")[, 1:4]  #the last hard bracket section removes a column with just NAs
-        protocolDetails$numberofTestTrials <- nrow(protocolTrialDetails) #nrow = ntrials
+        protocolDetails$numberofTestTrials <- as.character(nrow(protocolTrialDetails)) #nrow = ntrials
 
         protocolDetails$ISI <- output$V2[output$V1 == "Interval_b/w_Adaptor_and_Test"]
         protocolDetails$stim1amplitude <- output$V2[output$V1 == "Stimulus_1_amp"]
@@ -230,10 +232,12 @@ BATD_extract_OF <- function(list_of_filenames, Site) {
 
     # change performance column values to numeric ----
     allProtocolOutputs <- as.data.frame(allProtocolOutputs)
-    allProtocolOutputs[, 9:21] <- suppressWarnings(sapply(allProtocolOutputs[,
-      9:21], suppressWarnings(as.character)))  #supressWarnings is on because some values are already NA and then turn into NA
-    allProtocolOutputs[, 9:21] <- suppressWarnings(sapply(allProtocolOutputs[,
-      9:21], suppressWarnings(as.numeric)))
+
+    allProtocolOutputs[, 12:23] <- suppressWarnings(sapply(allProtocolOutputs[,
+      12:23], suppressWarnings(as.character)))  #supressWarnings is on because some values are already NA and then turn into NA
+    allProtocolOutputs[, 12:23] <- suppressWarnings(sapply(allProtocolOutputs[,
+      12:23], suppressWarnings(as.numeric)))
+    allProtocolOutputs$numberofTestTrials <- as.character(allProtocolOutputs$numberofTestTrials)
 
 
     #Accounting for discrimination tasks not subtracting the comparison stimulus ----
@@ -258,9 +262,9 @@ BATD_extract_OF <- function(list_of_filenames, Site) {
     allParticipantsOutput[[p]] <- as.data.frame(allProtocolOutputs)
   }
 
-  allParticipantsOutput_combined <- as.data.frame(data.table::rbindlist(allParticipantsOutput,
-    fill = TRUE))
+  allParticipantsOutput_combined <- as.data.frame(data.table::rbindlist(allParticipantsOutput, fill = TRUE))
 
+  print("this last section was completed")
   setwd(inputDirectory)
   # dir.create("combined", showWarnings = FALSE)  #set the wd to the folder where you wish to save the combined data to
   # combinedDirectory <- paste0(inputDirectory, "/combined")  #automatically creates a folder in that directory named 'output' - if you already have a folder named output, ignore this code.
