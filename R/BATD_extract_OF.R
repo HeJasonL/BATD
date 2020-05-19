@@ -17,16 +17,15 @@
 
 BATD_extract_OF <- function(list_of_filenames, Site) {
 
-
   #DEBUGGING ----
-  debugging <- "off"
+  debugging <- "on"
   if(debugging=="on"){
     setwd("~/Dropbox/Documents/Data repository/Tactile Data/Raw/Old Format/KKI") #setwd to old format data from JHU
     list_of_filenames <- list.files(pattern = "-")
     Site <- ("KKI")
   }
 
-
+  ## SECTION 1 (setup for entry into the master for loop) ----
   inputDirectory <- getwd()
   dir.create("output", showWarnings = FALSE)  #set the wd to the folder where you wish to save the output data to
   outputDirectory <- paste0(inputDirectory, "/output")  #automatically creates a folder in that directory named 'output' - if you already have a folder named output, ignore this code.
@@ -36,12 +35,14 @@ BATD_extract_OF <- function(list_of_filenames, Site) {
   nthProtocolOutputList <- list()  #creates a list to store the output from the nth protocol (middle loop)
   protocolOutput_for_givenSession <- list()  #creates a list to store the output from a given session (inner loop )
 
-  # For loop through the participants identified in the inputDirectory ----
+  ## SECTION 2 (For loop through the participants identified in the inputDirectory)
+
   for (p in 1:length(list_of_filenames)) {
-    list_of_filenames <- list.files(pattern = "-")
+    # list_of_filenames <- list.files(pattern = "-")
 
     # set the working directory to the participant directory and identify the
     # protocols completed by participant[p] ----
+    #p <- 1
     setwd(paste0(inputDirectory, "/", list_of_filenames[p]))  #setwd to participant's folder [this folder contains another folder named as the date of when the particpant completed the task]
     participantsFolder <- getwd()
     filesinFolder <- list.files(pattern = "-")  #We want to specify the folder named as the date of testing and nothing else (it must have have a '-' that splits the dates)
@@ -56,6 +57,7 @@ BATD_extract_OF <- function(list_of_filenames, Site) {
     # For loop through the protocols in the protocolsFolder and extract the
     # participant/protocol/performance details ----
     for (n in 1:length(protocolsinprotocolsFolder)) {
+      #n <- 1
       setwd(paste0(protocolsFolder, "/", protocolsinprotocolsFolder[n]))  #set then set the directory to the n^th protocol
       protocolOutputs <- list.files(pattern = "1-")  #identify the particpant files (the pattern '1-' refers to the protocol output files)
 
@@ -82,8 +84,7 @@ BATD_extract_OF <- function(list_of_filenames, Site) {
         handedness <- as.character(output$V2[output$V1 == "Handedness"])
         birthYear <- as.character(output$V2[output$V1 == "Birthdate"])
         date <- gsub("/", "-", as.character(output$V2[output$V1 == "Date"]))
-        participantDetails <- as.data.frame(cbind(id, date, race, gender,
-          handedness, birthYear))  #Combine participant details into a dataframe
+        participantDetails <- as.data.frame(cbind(id, date, race, gender, handedness, birthYear))  #Combine participant details into a dataframe
 
 
         # adjust the participant details so the strings line up with how they are
@@ -111,9 +112,17 @@ BATD_extract_OF <- function(list_of_filenames, Site) {
         protocolDetails$originalFilename <- protocolOutputs[s]
         colnames(protocolDetails)[1] <- "protocol"
         protocolDetails$numberofPracticeTrials <- "0"
-        protocolDetails$numberofTestTrials <- output$V2[output$V1 == "Number_of_Trials"]
+        # protocolDetails$numberofTestTrials <- output$V2[output$V1 == "Number_of_Trials"]
+
+        #Determine the number of trials by reading in the file itself (rather than rely on the trial information dataframe used above)
+        protocolTrialDetails <- list.files(pattern = "2-")  #identify the participantPerformance file
+        protocolTrialDetails <- read.csv(protocolTrialDetails[s], header = TRUE, sep = "\t")[, 1:4]  #the last hard bracket section removes a column with just NAs
+        protocolDetails$numberofTestTrials <- nrow(protocolTrialDetails) #nrow = ntrials
+
         protocolDetails$ISI <- output$V2[output$V1 == "Interval_b/w_Adaptor_and_Test"]
         protocolDetails$stim1amplitude <- output$V2[output$V1 == "Stimulus_1_amp"]
+
+        protocolDetails$stim1duration <- output$V2[output$V1 == "Stimulus_1_StimDuration"] #compared to below, there is always a stim 1
 
         # The below is self-explanatory, but in case readers are curious, the code below
         # checks to see whether stimulus 1 and/or 2 amplitudes are present in the output
@@ -121,24 +130,38 @@ BATD_extract_OF <- function(list_of_filenames, Site) {
         # it make sthat value NA
         if ("Stimulus_2_amp" %in% output$V1) {
           protocolDetails$stim2amplitude <- output$V2[output$V1 == "Stimulus_2_amp"]
+          protocolDetails$stim2duration <- output$V2[output$V1 == "Stimulus_2_StimDuration"]
         } else {
           protocolDetails$stim2amplitude <- NA
+          protocolDetails$stim2duration <- NA
         }
         if ("Adapting_Stimulus_1_amp" %in% output$V1) {
           protocolDetails$astim1amplitude <- output$V2[output$V1 == "Adapting_Stimulus_1_amp"]
+          protocolDetails$astim1duration <- output$V2[output$V1 == "Adapting_Stimulus_1_StimDuration"]
         } else {
           protocolDetails$astim1amplitude <- NA
+          protocolDetails$astim1duration <- NA
         }
         if ("Adapting_Stimulus_2_amp" %in% output$V1) {
-          protocolDetails$astim1amplitude <- output$V2[output$V1 == "Adapting_Stimulus_2_amp"]
+          protocolDetails$astim2amplitude <- output$V2[output$V1 == "Adapting_Stimulus_2_amp"]
+          protocolDetails$astim2duration <- output$V2[output$V1 == "Adapting_Stimulus_2_StimDuration"]
         } else {
           protocolDetails$astim2amplitude <- NA
+          protocolDetails$astim2duration <- NA
         }
+
+        protocolDetails$orderCompleted <- n
+        protocolDetails$run <- 1
+
 
         # (3) Extract Performance details ----
         performanceDetails <- list.files(pattern = "2-")  #identify the participantPerformance file
         performanceDetails <- read.csv(performanceDetails[s], header = TRUE,
           sep = "\t")[, 1:4]  #the last hard bracket section removes a column with just NAs
+
+
+
+
         correctResponse <- suppressWarnings(as.character(as.numeric(performanceDetails$Response[performanceDetails$Correct ==
           1][1])))
         incorrectResponse <- 0
@@ -222,10 +245,10 @@ BATD_extract_OF <- function(list_of_filenames, Site) {
     # Create column(s) to detail the extraction process ----
     allProtocolOutputs$site <- Site
     allProtocolOutputs$format <- "OF"  #Specify that the format of the data is the old format
-    allProtocolOutputs$extractedBy <- "BATD V.1.3"  #Specify that the data was extracted by BATD version V.X.X
+    allProtocolOutputs$extractedBy <- "BATD V.1.5"  #Specify that the data was extracted by BATD version V.X.X
 
     # Save the extracted file for each participant in the output directory -----
-    print(paste("Extracting participant:", list_of_filenames[p]))
+    print(paste("Extracted participant:", list_of_filenames[p]))
     currentDirectory <- getwd()  #remember the current wd
     setwd(outputDirectory)  #setwd to the outputDirectory
     write.csv(allProtocolOutputs, file = paste0("BATD_extracted_", list_of_filenames[p],
@@ -237,12 +260,13 @@ BATD_extract_OF <- function(list_of_filenames, Site) {
 
   allParticipantsOutput_combined <- as.data.frame(data.table::rbindlist(allParticipantsOutput,
     fill = TRUE))
+
   setwd(inputDirectory)
-  dir.create("combined", showWarnings = FALSE)  #set the wd to the folder where you wish to save the combined data to
-  combinedDirectory <- paste0(inputDirectory, "/combined")  #automatically creates a folder in that directory named 'output' - if you already have a folder named output, ignore this code.
-  setwd(combinedDirectory)
-  write.csv(allParticipantsOutput_combined, file = "BATD_extracted_combined.csv")
-  setwd(inputDirectory)
+  # dir.create("combined", showWarnings = FALSE)  #set the wd to the folder where you wish to save the combined data to
+  # combinedDirectory <- paste0(inputDirectory, "/combined")  #automatically creates a folder in that directory named 'output' - if you already have a folder named output, ignore this code.
+  # setwd(combinedDirectory)
+  # write.csv(allParticipantsOutput_combined, file = "BATD_extracted_combined.csv")
+  # setwd(inputDirectory)
 
   print(paste0("Combined extracted data saved in:", combinedDirectory))
 
