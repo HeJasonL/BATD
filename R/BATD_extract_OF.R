@@ -264,15 +264,14 @@ BATD_extract_OF <- function(list_of_filenames, Site){
 
   allParticipantsOutput_combined <- as.data.frame(data.table::rbindlist(allParticipantsOutput, fill = TRUE))
 
-  print("this last section was completed")
+  print("All participants extracted")
   setwd(inputDirectory)
   # dir.create("combined", showWarnings = FALSE)  #set the wd to the folder where you wish to save the combined data to
   # combinedDirectory <- paste0(inputDirectory, "/combined")  #automatically creates a folder in that directory named 'output' - if you already have a folder named output, ignore this code.
   # setwd(combinedDirectory)
   # write.csv(allParticipantsOutput_combined, file = "BATD_extracted_combined.csv")
   # setwd(inputDirectory)
-
-  print(paste0("Combined extracted data saved in:", combinedDirectory))
+  # print(paste0("Combined extracted data saved in:", combinedDirectory))
 
   return(allParticipantsOutput_combined)
 }
