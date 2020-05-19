@@ -16,6 +16,17 @@
 #' @export
 
 BATD_extract_OF <- function(list_of_filenames, Site) {
+
+
+  #DEBUGGING ----
+  debugging <- "off"
+  if(debugging=="on"){
+    setwd("~/Dropbox/Documents/Data repository/Tactile Data/Raw/Old Format/KKI") #setwd to old format data from JHU
+    list_of_filenames <- list.files(pattern = "-")
+    Site <- ("KKI")
+  }
+
+
   inputDirectory <- getwd()
   dir.create("output", showWarnings = FALSE)  #set the wd to the folder where you wish to save the output data to
   outputDirectory <- paste0(inputDirectory, "/output")  #automatically creates a folder in that directory named 'output' - if you already have a folder named output, ignore this code.
