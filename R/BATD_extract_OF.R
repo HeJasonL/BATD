@@ -191,33 +191,15 @@ BATD_extract_OF <- function(list_of_filenames, Site){
     # sometimes protocols share numeric codes ----
     allProtocolOutputs$protocolName[allProtocolOutputs$protocol == 801] <- "Simple Reaction Time"
     allProtocolOutputs$protocolName[allProtocolOutputs$protocol == 800] <- "Choice Reaction Time"
-    allProtocolOutputs$protocolName[allProtocolOutputs$protocol == 100 & allProtocolOutputs$stim1amplitude ==
-      20 & is.na(allProtocolOutputs$stim2amplitude)] <- "Static Detection Threshold"
-    allProtocolOutputs$protocolName[allProtocolOutputs$protocol == 713] <- "Dynamic Detection Threshold"
-    allProtocolOutputs$protocolName[allProtocolOutputs$protocol == 100 & allProtocolOutputs$stim1amplitude ==
-      100 & allProtocolOutputs$stim2amplitude == 200] <- "Amplitude Discrimination Threshold without Adaptation"
-    allProtocolOutputs$protocolName[allProtocolOutputs$protocol == 220 & allProtocolOutputs$stim1amplitude ==
-      200 & allProtocolOutputs$stim2amplitude == 200 & allProtocolOutputs$ISI ==
-      0] <- "Sequential Frequency Discrimination"
-    allProtocolOutputs$protocolName[allProtocolOutputs$protocol == 200 & allProtocolOutputs$stim1amplitude ==
-      200 & allProtocolOutputs$stim2amplitude == 200 & allProtocolOutputs$ISI ==
-      0] <- "Simultaneous Frequency Discrimination"
-    allProtocolOutputs$protocolName[allProtocolOutputs$protocol == 109 & allProtocolOutputs$stim1amplitude ==
-      15 & is.na(allProtocolOutputs$stim2amplitude) & allProtocolOutputs$ISI ==
-      30] <- "Static Detection Threshold with Adaptation ISI 30"
-    allProtocolOutputs$protocolName[allProtocolOutputs$protocol == 109 & allProtocolOutputs$stim1amplitude ==
-      15 & is.na(allProtocolOutputs$stim2amplitude) & allProtocolOutputs$ISI ==
-      100] <- "Static Detection Threshold with Adaptation ISI 100"
-    allProtocolOutputs$protocolName[allProtocolOutputs$protocol == 109 & allProtocolOutputs$stim1amplitude ==
-      100 & allProtocolOutputs$stim2amplitude == 200 & allProtocolOutputs$astim1amplitude ==
-      100 & allProtocolOutputs$astim1amplitude == 100 & allProtocolOutputs$ISI ==
-      1000] <- "Amplitude Discrimination with Single Site Adaptation"
-    allProtocolOutputs$protocolName[allProtocolOutputs$protocol == 109 & allProtocolOutputs$stim1amplitude ==
-      100 & allProtocolOutputs$stim2amplitude == 200 & allProtocolOutputs$astim1amplitude ==
-      100 & allProtocolOutputs$ISI == 100] <- "Amplitude Discrimination with Single Site Adaptation"
-    allProtocolOutputs$protocolName[allProtocolOutputs$protocol == 350 & allProtocolOutputs$stim1amplitude ==
-      300 & allProtocolOutputs$stim2amplitude == 300 & allProtocolOutputs$ISI ==
-      0] <- "Duration Discrimination"
+    allProtocolOutputs$protocolName[allProtocolOutputs$protocol == 100 & allProtocolOutputs$stim1amplitude == 20 & is.na(allProtocolOutputs$stim2amplitude)] <- "Static Detection Threshold" allProtocolOutputs$protocolName[allProtocolOutputs$protocol == 713] <- "Dynamic Detection Threshold"
+    allProtocolOutputs$protocolName[allProtocolOutputs$protocol == 100 & allProtocolOutputs$stim1amplitude == 100 & allProtocolOutputs$stim2amplitude == 200] <- "Amplitude Discrimination Threshold without Adaptation"
+    allProtocolOutputs$protocolName[allProtocolOutputs$protocol == 220 & allProtocolOutputs$stim1amplitude == 200 & allProtocolOutputs$stim2amplitude == 200 & allProtocolOutputs$ISI == 0] <- "Sequential Frequency Discrimination"
+    allProtocolOutputs$protocolName[allProtocolOutputs$protocol == 200 & allProtocolOutputs$stim1amplitude == 200 & allProtocolOutputs$stim2amplitude == 200 & allProtocolOutputs$ISI == 0] <- "Simultaneous Frequency Discrimination"
+    allProtocolOutputs$protocolName[allProtocolOutputs$protocol == 109 & allProtocolOutputs$stim1amplitude == 15 & is.na(allProtocolOutputs$stim2amplitude) & allProtocolOutputs$ISI == 30] <- "Static Detection Threshold with Adaptation ISI 30"
+    allProtocolOutputs$protocolName[allProtocolOutputs$protocol == 109 & allProtocolOutputs$stim1amplitude == 15 & is.na(allProtocolOutputs$stim2amplitude) & allProtocolOutputs$ISI == 100] <- "Static Detection Threshold with Adaptation ISI 100"
+    allProtocolOutputs$protocolName[allProtocolOutputs$protocol == 109 & allProtocolOutputs$stim1amplitude == 100 & allProtocolOutputs$stim2amplitude == 200 & allProtocolOutputs$astim1amplitude == 100 & allProtocolOutputs$astim1amplitude == 100 & allProtocolOutputs$ISI == 1000] <- "Amplitude Discrimination with Single Site Adaptation"
+    allProtocolOutputs$protocolName[allProtocolOutputs$protocol == 109 & allProtocolOutputs$stim1amplitude == 100 & allProtocolOutputs$stim2amplitude == 200 & allProtocolOutputs$astim1amplitude == 100 & allProtocolOutputs$ISI == 100] <- "Amplitude Discrimination with Single Site Adaptation"
+    allProtocolOutputs$protocolName[allProtocolOutputs$protocol == 350 & allProtocolOutputs$stim1amplitude == 300 & allProtocolOutputs$stim2amplitude == 300 & allProtocolOutputs$ISI == 0] <- "Duration Discrimination"
     allProtocolOutputs$protocolName[allProtocolOutputs$protocol == 300] <- "Temporal Order Judgement"
     allProtocolOutputs$protocolName[allProtocolOutputs$protocol == 301] <- "Temporal Order Judgement with Carrier"
     allProtocolOutputs$protocolName[allProtocolOutputs$protocol == 103] <- "Amplitude Discrimination with Dual Site Adaptation"
@@ -255,8 +237,7 @@ BATD_extract_OF <- function(list_of_filenames, Site){
     print(paste("Extracted participant:", list_of_filenames[p]))
     currentDirectory <- getwd()  #remember the current wd
     setwd(outputDirectory)  #setwd to the outputDirectory
-    write.csv(allProtocolOutputs, file = paste0("BATD_extracted_", list_of_filenames[p],
-      "_OF.csv"))  #save the output of all the protocols for each participant as a csv
+    write.csv(allProtocolOutputs, file = paste0("BATD_extracted_", list_of_filenames[p], "_OF.csv"))  #save the output of all the protocols for each participant as a csv
     setwd(inputDirectory)  #(re)set the input directory
 
     allParticipantsOutput[[p]] <- as.data.frame(allProtocolOutputs)

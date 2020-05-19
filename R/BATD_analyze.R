@@ -21,12 +21,8 @@ BATD_analyze <- function(dataframe){
   debugging <- "off"
   if(debugging=="on"){
     print("Note: Debugging on")
-    dataframe <- newFormat_KKI
-    dataframe <- dataframe[dataframe$id=="2104-0119",]
-    # dataframe <- dataframe[dataframe$session==1,]
-    # print(paste("now analyzing:", dataframe$id[1]))
+    dataframe <- oldFormat_rbinded
   }
-
 
   '%ni%' <- Negate('%in%') #create the function for %not in%
   library(dplyr) #for some reason I can't call 'lead' or 'lag' without reading in the dplyr library
@@ -34,6 +30,7 @@ BATD_analyze <- function(dataframe){
   ## SECTION 1 (setup) ----
   dataframe <- dataframe #redundant code but useful for debugging (ignore)
   unique_number_of_runs <- unique(dataframe$run) #identify the unique number of runs completed
+
 
   list_of_protocols_by_run <- list()
   for(r in unique_number_of_runs){
@@ -64,7 +61,6 @@ BATD_analyze <- function(dataframe){
     ## SECTION 2 (Analyze each of the protocols completed identified in SECTION 1)----
 
     analyzed_protocols_list <- list()  # Create an external list to put the analyzed protocols
-
     for(p in 1:length(protocolsCompleted)){  #For loops which subsets into the nth protocol completed for a given session
 
       #Basic cleaning of dataframe ----
@@ -183,8 +179,6 @@ BATD_analyze <- function(dataframe){
   }
 
   participant_output <- plyr::rbind.fill(list_of_protocols_by_run)
-  participant_output
-
 
     return(participant_output)
 }
