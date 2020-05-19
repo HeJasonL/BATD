@@ -63,7 +63,7 @@ BATD_extract_OF <- function(list_of_filenames, Site){
 
       if (identical(list.files(pattern = ".txt"), character(0)))
         {
-        print("next was run")
+        # print("next was run")
           next
         }#This is a short piece of code to test whether the folder has any items within the folder
       # This needs to exist because while all the folders for each protocol are
