@@ -20,8 +20,8 @@ BATD_plot_all <- function(extracted_Data){
   debugging <- "off"
   if(debugging=="on"){
     print("Note: Debugging on")
-    extracted_Data <- ARBA1
-    # extracted_Data <- ARBA1[ARBA1$id=="pond-0055",]
+    extracted_Data <- oldFormat_KKI
+    setwd("~/Dropbox/Documents/Data repository/Tactile Data/Master Plots/KKI")
   }
 
   #Setup ----
@@ -30,6 +30,7 @@ BATD_plot_all <- function(extracted_Data){
   setwd(paste0(baseDirectory,"/Plots")) #Switch to a folder to save the plots
 
   extracted_Data <- extracted_Data[!is.na(extracted_Data$id),]
+  extracted_Data <- extracted_Data[!is.na(extracted_Data$protocolName),]
   uniqueParticipants <- unique(extracted_Data$id)
   uniqueParticipants <- uniqueParticipants[!is.na(uniqueParticipants)]
   participants_outPut_list <- list()

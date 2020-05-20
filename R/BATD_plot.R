@@ -20,9 +20,8 @@ BATD_plot <- function(data){
   #DEBUGGING ----
   debugging <- "off"
   if(debugging=="on"){
-    print("Note: Debugging on")
-    print(data$run)
-    # data_to_plot <- sessionData
+    # print("Note: Debugging on")
+    # data <- sessionData_for_given_run
   }
 
   #Set themes and functions ----
@@ -48,9 +47,9 @@ BATD_plot <- function(data){
 
   '%ni%' <- Negate('%in%') #create the function for %not in%
 
-
   #Setup -----
   data_to_plot <- data
+  data_to_plot <- data_to_plot[!is.na(data_to_plot$protocolName),]
   protocols_completed <- as.character(unique(data_to_plot$protocolName)) #identy the protocols completed
 
   sessions <- unique(data_to_plot$session) #Identifies the number of sessions completed outside of the loop
@@ -81,7 +80,9 @@ BATD_plot <- function(data){
         if(completed %in% c("Simultaneous Amplitude Discrimination",
                             "Sequential Amplitude Discrimination",
                             "Dual Staircase Amplitude Discrimination (up)",
-                            "Dual Staircase Amplitude Discrimination (down)")){#NOTE TO SELF: ADD NOTES
+                            "Dual Staircase Amplitude Discrimination (down)",
+                            "Amplitude Discrimination with Single Site Adaptation",
+                            "Amplitude Discrimination with Dual Site Adaptation")){#NOTE TO SELF: ADD NOTES
           Data$value <- Data$value - 100
         }
 

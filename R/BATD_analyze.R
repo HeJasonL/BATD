@@ -131,7 +131,10 @@ BATD_analyze <- function(dataframe){
       if(protocol %in% c("Simultaneous Amplitude Discrimination",
                          "Sequential Amplitude Discrimination",
                          "Dual Staircase Amplitude Discrimination (up)",
-                         "Dual Staircase Amplitude Discrimination (down)")){
+                         "Dual Staircase Amplitude Discrimination (down)",
+                         "Amplitude Discrimination with Single Site Adaptation",
+                         "Amplitude Discrimination with Dual Site Adaptation"
+                         )){
         threshold <- threshold - 100 #remove the standard stimulus from threshold
       }
       if(protocol %in% c("Duration Discrimination")){
