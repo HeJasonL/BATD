@@ -23,9 +23,9 @@ Version <- c("BATD_V.1.5")
   #DEBUGGING ----
   debugging <- "off"
   if(debugging=="on"){
-    setwd("~/Dropbox/Documents/Data repository/Tactile Data/Raw/Old Format/KKI") #setwd to old format data from JHU
-    list_of_filenames <- list.files(pattern = "-")
-    Site <- ("KKI")
+    setwd("~/Dropbox/Documents/Data repository/Tactile Data/Raw/Old Format/JHU") #setwd to old format data from JHU
+    list_of_filenames <- list.files(pattern = "2002-2012")
+    Site <- ("JHU")
     getwd()
   }
 
@@ -40,7 +40,7 @@ Version <- c("BATD_V.1.5")
 
   allParticipantsOutput <- list()  #creates a list to store the output containing all the output from all the protocols combined (outer loop)
   for (p in 1:length(list_of_filenames)){
-
+    #p <- 1
     ## SECTION 2.0 ----
     setwd(paste0(inputDirectory, "/", list_of_filenames[p]))  #setwd to participant's folder [this folder contains another folder named as the date of when the particpant completed the task]
     participantsFolder <- getwd()
@@ -174,7 +174,6 @@ Version <- c("BATD_V.1.5")
         protocol_output_for_a_given_participant_for_a_given_run[[s]] <- allProtocolDetails
       }
 
-      print(length(protocol_output_for_a_given_participant_for_a_given_run))
       combined_protocol_outputs_for_a_given_participant_for_a_given_run <- data.table::rbindlist(protocol_output_for_a_given_participant_for_a_given_run, use.names = TRUE) #row binds the dataframes in protocolOutput_for_given_participant (usually this is just a single file, since most participants only do one session)
       nthProtocolOutputList[[n]] <- combined_protocol_outputs_for_a_given_participant_for_a_given_run
 
@@ -182,7 +181,7 @@ Version <- c("BATD_V.1.5")
 
     allProtocolOutputs <- data.table::rbindlist(nthProtocolOutputList, fill = TRUE)  #row binds the dataframes in nthProtocolOutputList (usually this is just a single file, since most participants only do one session)
 
-    #Inclusion of session & run information
+    #Inclusion of orderCompleted information
 
     allProtocolOutputs <- as.data.frame(allProtocolOutputs)
     allProtocolOutputs <- allProtocolOutputs[with(allProtocolOutputs, order(allProtocolOutputs$timeProtocolStarted)),]
