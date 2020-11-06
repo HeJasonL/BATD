@@ -15,7 +15,7 @@
 BATD_plot <- function(data){
 
   ##Version
-  Version <- c("BATD_V.1.5")
+  Version <- c("BATD_V.1.6")
 
   #DEBUGGING ----
   debugging <- "off"

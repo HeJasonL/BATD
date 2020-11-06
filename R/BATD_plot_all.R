@@ -14,7 +14,7 @@
 BATD_plot_all <- function(extracted_Data){
 
   ##Version
-  Version <- c("BATD_V.1.5")
+  Version <- c("BATD_V.1.6")
 
   #DEBUGGING ----
   debugging <- "off"
@@ -22,31 +22,36 @@ BATD_plot_all <- function(extracted_Data){
     print("Note: Debugging on")
     extracted_Data <- oldFormat_KKI
     setwd("~/Dropbox/Documents/Data repository/Tactile Data/Master Plots/KKI")
+    extracted_Data <- ARBA1[ARBA1$id=="pond-0809",]
   }
 
   #Setup ----
   baseDirectory <- getwd()
   dir.create("Plots", showWarnings = FALSE) #Creates a directory to put the combined .csv file into
   setwd(paste0(baseDirectory,"/Plots")) #Switch to a folder to save the plots
-
   extracted_Data <- extracted_Data[!is.na(extracted_Data$id),]
   extracted_Data <- extracted_Data[!is.na(extracted_Data$protocolName),]
+
   uniqueParticipants <- unique(extracted_Data$id)
   uniqueParticipants <- uniqueParticipants[!is.na(uniqueParticipants)]
+
   participants_outPut_list <- list()
 
   for(x in 1:length(uniqueParticipants)){
-    data <- extracted_Data[extracted_Data$id==uniqueParticipants[x],]
+    print(paste0("Now plotting participant:", uniqueParticipants[x]))
 
+    data <- extracted_Data[extracted_Data$id==uniqueParticipants[x],]
     #identify the number of unique sessions
-    uniqueSessions <- unique(data$session)
+    uniqueSessions <- sort(unique(data$session))
     list_of_all_plots_for_a_given_session <- list()
     for(s in uniqueSessions){
-      sessionData <- data[data$session==uniqueSessions[s],]
+
+      sessionData <- data[data$session==s,]
 
       #identify the number of unique runs
       uniqueRuns <- unique(sessionData$run)
       list_of_all_plots_for_a_given_run <- list()
+
       for(r in 1:length(uniqueRuns)){
         sessionData_for_given_run <- sessionData[sessionData$run==uniqueRuns[r],]
 
@@ -63,7 +68,6 @@ BATD_plot_all <- function(extracted_Data){
 
     }#end of sessions loop
 
-    print(paste0("Now plotting participant:", uniqueParticipants[x]))
     pdf(paste0(uniqueParticipants[x],".pdf"), onefile = TRUE, width = 20, height = 12)
     print(list_of_all_plots_for_a_given_session)
     dev.off()

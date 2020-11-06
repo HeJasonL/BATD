@@ -42,7 +42,7 @@ Version <- c("BATD_V.1.6")
     library(here)
     setwd(here("POND Data", "ARBA1"))
     participants_from_ARBA1  <- list.files(here("POND Data", "ARBA1"), pattern = "-")
-    list_of_filenames <- participants_from_ARBA1
+    list_of_filenames <- participants_from_ARBA1[1]
     Site <- "ARBA1"
   }
 
@@ -100,7 +100,7 @@ Version <- c("BATD_V.1.6")
     #time stamp differences > 1000 are almost certainly separate sessions (it is possible that participants complete sessions back to back, 16 minutes a safe difference)
   end_of_session <- time_differences[time_differences$V3 > 1000 & !is.na(time_differences$V3 ),]
   colnames(end_of_session) <- c("end_of_session", "start_of_session", "time_difference")
-  date_and_times$date_and_time <- sort(date_times_formatted, decreasing = TRUE)
+  date_and_times$date_and_time <- date_times_formatted
   date_and_times$timepoint <- ifelse(date_and_times$date_and_time %in% end_of_session$end_of_session, "end", "NA")
   rows_where_protocol_ends <- rownames(date_and_times[date_and_times$timepoint=="end",])
   rows_where_protocol_ends <- c(rows_where_protocol_ends, nrow(date_and_times)) #append the last row as an end point
@@ -362,17 +362,31 @@ participants <- unique(allParticipantsOutput_combined$id)
 for(p in 1:length(participants)){
   current_p <- allParticipantsOutput_combined[allParticipantsOutput_combined$id==participants[p],]
   sessions <- unique(current_p$session)
-  print(paste('participants:',current_p$id[1], ", session:",sessions))
     for(s in 1:length(sessions)){
     current_s <- current_p[current_p$session==sessions[s],]
     times <- sort(unique(current_s$time), decreasing = TRUE)
+    protocols_completed_in_session <- list()
       for(t in 1:length(times)){
-      current_t <- current_p[current_p$time==times[t],]
-      t_repeated <- rep(t, times = nrow(current_t))
-      list_for_runs <- append(list_for_runs, t_repeated)
-      }}}
 
-allParticipantsOutput_combined$run <- list_for_runs
+      current_t <- current_p[current_p$time==times[t],] #subset to current unique timepoint
+      protocols_completed_in_session <- append(protocols_completed_in_session, current_t$protocolName[1]) #add the protocol completed to the protocols_completed_in_session list
+      repeats <- sum(protocols_completed_in_session==current_t$protocolName[1]) #calculate number of repeats of this protocol
+
+      if(repeats > 1){ #if there are more than 1 repeats of the current protocol, then repeat the value of the repeats by nrow of the current trial
+        t_repeated <- rep(repeats, times = nrow(current_t))
+      } else {
+        t_repeated <- rep(1, times = nrow(current_t)) #otherwise, just repeat the value 1 by nrow of the current trial
+      }
+
+      list_for_runs <- append(list_for_runs, t_repeated)
+
+      }}}
+allParticipantsOutput_combined$run <- unlist(list_for_runs)
+
+#Changing variables to the right format
+allParticipantsOutput_combined <- data.frame(lapply(allParticipantsOutput_combined, as.character), stringsAsFactors=FALSE)
+allParticipantsOutput_combined[9:25] <- sapply(allParticipantsOutput_combined[9:25], as.numeric)
+allParticipantsOutput_combined[29:34] <- sapply(allParticipantsOutput_combined[29:34], as.numeric)
 
 # Section 3 ---------------------------------------------------------------
 #Saving the combined dataframe

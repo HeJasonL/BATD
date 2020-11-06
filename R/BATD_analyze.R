@@ -15,13 +15,13 @@
 BATD_analyze <- function(dataframe){
 
   ##VERSION ----
-  Version <- c("BATD_V.1.5")
+  Version <- c("BATD_V.1.6")
 
   #DEBUGGING ----
   debugging <- "off"
   if(debugging=="on"){
     print("Note: Debugging on")
-    dataframe <- oldFormat_rbinded
+    dataframe <- ARBA1[ARBA1$id=="pond-0431",]
   }
 
   '%ni%' <- Negate('%in%') #create the function for %not in%
@@ -66,9 +66,10 @@ BATD_analyze <- function(dataframe){
       #Basic cleaning of dataframe ----
       protocol <- protocolsCompleted[p] #state the current protocol (legacy: haven't tried running without this yet)
       protocolData <- data[data$protocolName==protocolsCompleted[p],] #Subset to relevant protocol
-      if(nrow(data)==0){next} #(legacy)
+      if(nrow(protocolData) < 1){next} #(legacy)
 
       sessionData <- protocolData
+
 
       #Change performance column values to numeric ----
       sessionData <- sessionData[!is.na(sessionData$trialNumber),] #remove any trials without a trial number (legacy)
@@ -120,8 +121,13 @@ BATD_analyze <- function(dataframe){
       #For the tactile threshold protocols
         #Estimate Threshold
       if(protocol %ni% c("Simple Reaction Time","Choice Reaction Time")){
+
         sessionData <- sessionData_for_thresholds
-        threshold <- mean(sessionData$value[(nrow(sessionData)-4):(nrow(sessionData))])
+        if(nrow(sessionData) > 5){
+          threshold <- mean(sessionData$value[(nrow(sessionData)-4):(nrow(sessionData))])
+        }else{
+          threshold <- NA
+        }
       }
       #Estimate Threshold for dynamic detection threshold (done differently)
       if(protocol %in% c("Dynamic Detection Threshold")){

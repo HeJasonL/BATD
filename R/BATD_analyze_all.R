@@ -16,6 +16,9 @@
 
 BATD_analyze_all <- function(dataframe) {
 
+  ##Version
+  Version <- c("BATD_V.1.6")
+
   #DEBUGGING ----
   debugging <- "off"
   if(debugging=="on"){
@@ -23,12 +26,7 @@ BATD_analyze_all <- function(dataframe) {
     dataframe <- oldFormat_rbinded
   }
 
-  ##Version
-  Version <- c("BATD_V.1.5")
-
   dataframe <- dataframe[!is.na(dataframe$protocolName),] #do not run through protocols without names (WARNING)
-
-
   uniqueParticipants <- unique(dataframe$id)
   uniqueParticipants <- uniqueParticipants[!is.na(uniqueParticipants)]
 
