@@ -17,208 +17,320 @@
 
 BATD_extract_NF <- function(list_of_filenames, Site){
 
-  ##VERSION
-  Version <- c("BATD_V.1.5")
+#BATD Version:
+Version <- c("BATD_V.1.6")
+#Version 1.6. has made signficiant adjustments to the code, including:
+# . Streamlining of how sessions were accounted for (previously done in section 2, and based only on date)
+#  . Sessions now take into account date AND time, making it more sensitive. Sessions are counted as separate if they are 1000 seconds apart (~16 minutes )
+#  . This has been achieved by accounting for sessions earlier in the code, and back referencing to a dataframe which contains the date/time stamps of each protocol
+#  . The plan for V.1.7 is to make it so that runs (currently done in section 2) are also integrated into section 1
+#  . This will involve naming the protocols earlier in the code (currently done in section 1.4)
+#  . If this is achieved, section 2 can be removed all together
+# . Removal of debugging lines that were cluttering the code
+# . These changes have been made to improve the readability of the code, as it appears the likelihood of others using this code is increasing
 
-  #DEBUGGING ----
+#The extraction function is divided into three separate sections containing subsections within them
+#Section 1 is the bulk of the function - it extracts the data from each file and saves a formatted version for each participant
+#Section 2 is used to make adjustments to the final dataset. Typically, these adjustments are integrated into Section 1 as I continue to update the script
+#Section 3 is used to save the combined data set in .csv file format
+
+#Index - W.I.P
+
+# Debugging ---------------------------------------------------------------
   debugging <- "off"
   if(debugging=="on"){
-    setwd("~/Dropbox/Documents/Data repository/Tactile Data/Raw/New Format/CCH") #setwd to old format data from JHU
-    participants_from_CCH <- list.files(pattern = "-") #identify all the participants in the folder
+    library(here)
+    setwd(here("POND Data", "ARBA1"))
+    participants_from_ARBA1  <- list.files(here("POND Data", "ARBA1"), pattern = "-")
+    list_of_filenames <- participants_from_ARBA1
+    Site <- "ARBA1"
   }
 
+# Setup -------------------------------------------------------------------
   '%ni%' <- Negate('%in%') #create the function for %not in%
+  inputDirectory <- getwd() #get the current wd
+  dir.create("output", showWarnings = FALSE) #create a folder called "output" for the output
+  outputDirectory <- paste0(inputDirectory,"/output") #create a variable which denotes the output directory
 
-  ## SECTION 1 ----
-    # SECTION 1.0 (Setup and entry into the master for loop)
-    inputDirectory <- getwd() #get the current wd
-    dir.create("output", showWarnings = FALSE) #create a folder called "output" for the output
-    outputDirectory <- paste0(inputDirectory,"/output") #create a variable which denotes the output directory
+# Section 1 ---------------------------------------------------------------
+  #Entering the outer loop
+  allParticipantsOutput <- list() #create a list for the output for each participant
+  for(p in 1:length(list_of_filenames)){  #For loop through the participants identified in the inputDirectory
+    setwd(inputDirectory) #set working directory to where all the Brain Gauge output files are saved
+    output <- read.csv(list_of_filenames[p], header = FALSE) #read in the current participant's file (based on 'p')
+    print(paste('now extracting details from file:', list_of_filenames[p]))
+  # Section 1.1 ------------------------------------------------------------
+  #General data cleaning prior to extraction
+  #The output is read in as a two column dataframe, with columns V1 and V2
+  #Column V1 contains all the 'information', followed by a ":', with the 'data' on the right side
+  #Here, we are simply taking the first column and dividing the information and the data ...
+  # ... and creating a dataframe that we can work with
+  output$V1 <- as.character(output$V1) #turn column 1 into a character
+  output$V1 <- gsub(" ","",output$V1) #replace all blank spaces in column 1
+  tempo <- suppressWarnings(t(as.data.frame(strsplit(output$V1,":")))) #split the string by ':' and transpose it to long format
+  rownames(tempo) <- c() #clear the row numbers
+  cleaned_output <- suppressWarnings(as.data.frame(tempo)) #turn the output into a dataframe
 
-    allParticipantsOutput <- list()
+  # Section 1.1 ------------------------------------------------------------
+#Determine the number of sessions and create a dataframe which keeps track of when participants started and ended their session
+  #identify all the date and time stamps
+  date_and_times <- unique(cleaned_output[cleaned_output$V1=="date",]) #look at all the unique date/time stamps
+  date_and_times$protocol <- cleaned_output[cleaned_output$V1=="protocol",]$V2
+  rownames(date_and_times) <- c() #clear the row numbers
+  date <- stringr::str_sub(as.character(date_and_times$V2),1,10) #format date
+  hours <- stringr::str_sub(date_and_times$V2, 12, 13) #format time - hours
+  minutes <- date_and_times$V3 #format time - minutes
+  seconds <- stringr::str_sub(date_and_times$V4, 1, 2)
+  time <- paste0(hours, ":", minutes, ":", seconds) #format time - hours and minutes
+  date_times <- paste(date, time) #format date-time
+  date_times_formatted <- sort(as.POSIXct(date_times,format="%Y-%m-%d %H:%M:%S")) #convert to POSIXct and sort in ascending order
 
-    for(p in 1:length(list_of_filenames)){#For loop through the participants identified in the inputDirectory
-      setwd(inputDirectory) #set working directory
-      output <- read.csv(list_of_filenames[p], header = FALSE) #read in the current participant[p]'s file
+  #Identify the time differences between each time stamp
+  list_of_time_differences <- list()
+  for(times in 1:length(date_times_formatted)){
+    protocol_a <- date_times_formatted[times + 1] #first protocol
+    protocol_b <- date_times_formatted[times] #second protocol
+    time_difference <- date_times_formatted[times + 1] - date_times_formatted[times]
+    list_of_time_differences[[times]] <- dplyr::bind_cols(list(protocol_a, protocol_b, time_difference))
+  }
 
-      if(debugging=="on"){print("SECTION 1.0: (Setup and entry into the master for loop) - COMPLETED")}
+  time_differences <- dplyr::bind_rows(list_of_time_differences)
 
-      # SECTION 1.1 (cleaning) ----
-      #General data cleaning prior to extraction
-        output$V1 <- as.character(output$V1) #turn column 1 into a character
-        output$V1 <- gsub(" ","",output$V1) #replace all blank spaces in column 1
-        tempo <- suppressWarnings(t(as.data.frame(strsplit(output$V1,":")))) #split the string by ':' and transpose it to long format
-        rownames(tempo) <- c() #clear the row numbers
-        temp <- suppressWarnings(as.data.frame(tempo)) #turn the output into a dataframe
+  #identify time stamps that have a difference larger than 1000 seconds (~16 minutes)
+    #time stamp differences > 1000 are almost certainly separate sessions (it is possible that participants complete sessions back to back, 16 minutes a safe difference)
+  end_of_session <- time_differences[time_differences$V3 > 1000 & !is.na(time_differences$V3 ),]
+  colnames(end_of_session) <- c("end_of_session", "start_of_session", "time_difference")
+  date_and_times$date_and_time <- sort(date_times_formatted, decreasing = TRUE)
+  date_and_times$timepoint <- ifelse(date_and_times$date_and_time %in% end_of_session$end_of_session, "end", "NA")
+  rows_where_protocol_ends <- rownames(date_and_times[date_and_times$timepoint=="end",])
+  rows_where_protocol_ends <- c(rows_where_protocol_ends, nrow(date_and_times)) #append the last row as an end point
 
-        if(debugging=="on"){print("SECTION 1.1: (cleaning) - COMPLETED")}
+  #For loop through the date_and_times and append session to them
+  number_of_sessions <- length(rows_where_protocol_ends) #identify the number of sessions
+  session_list <- list()
+  start <- 1
+  for(s in 1:number_of_sessions){
 
-      # SECTION 1.2 (splitting the dataframe into separate protocols ) ----
+    if(s > number_of_sessions){break} #ends on the last iteration
+    data <- date_and_times[start:rows_where_protocol_ends[s],] #subset to the current session (from start to where end exists)
+    data$session <- s #add in session value
+    session_list[[s]] <- data #store in list
 
-      #Break the dataframe up into separate protocols stored in a list
-            #Use "X" to mark the beginning of each protocol
-            temp$V4 <- ifelse(temp$V1=="date", "X",NA) #All of the files start with date, we will use date as marker of the start of each protocol - create a column which marks date with a 'X'
-            protocols <- (which(temp$V4=="X")) #This line tells us all of the instances in *which* 'X' occurs
-            protocols <- as.list(protocols)
-            list <- list() #Create a list external of the for loop for breaking the output into seperate protocols
-            for (i in (1:length(protocols))){
-              if(i==length(protocols)){break} #Note to self, if it's 14, then we want i+1 to be something else (i.e., the end of the file)
-              list[[i]] <-  temp[(paste(protocols[i])):(paste(protocols[i+1])),]
-            } #loop for breaking the output into separate protocols
-            list[[i]] <- temp[(paste(protocols[i])):nrow(temp),] #puts the last protocol into the list (for loop above cannot account for last protocol)
+    start <- start + nrow(data) #update start row
+  }
 
-            if(debugging=="on"){print("SECTION 1.2: (splitting the dataframe into separate protocols) - COMPLETED")}
+  date_and_times_dataframe <- dplyr::bind_rows(session_list)
 
-      # SECTION 1.3 (for loop through the protocols in the folder and extracting the participant/protocol/performance details) ----
-        ProtocolOutputList <- list()
-        for (i in (1:length(list))){
-          output <- list[[i]]
-          rownames(output) <- c() #clear the row numbers
-          # (1) Extract Participant details ----
-          race <- as.character(output$V2[output$V1=="race"])[1]
-          gender <- as.character(output$V2[output$V1=="gender"])[1]
-          handedness <- as.character(output$V2[output$V1=="handedness"])[1]
-          birthYear <- as.character(output$V2[output$V1=="birthYear"])[1]
-          id <- as.character(output$V2[output$V1=="number"]) [1]#is this participant id?
+  # Section 1.2 -------------------------------------------------------------
+  #Now that the dataframe has been cleaned by section 1.1, we need to divide the output into its constituent protocols
+  #Here, we identify a marker for where a protocol begins, and use this mark to break the dataframe up ...
+  # ... storing each protocol in a list ('list_of_protocols')
+  #Use "X" to mark the beginning of each protocol, and then split the dataframes based on the x
+  #Since date appears at the start of every protocol, we mark each row with 'date' with a column that has 'x'
 
-          participantDetails <- as.data.frame(cbind(id, race, gender, handedness, birthYear))
+  cleaned_output$V5 <- ifelse(cleaned_output$V1=="date", "X",NA) #Mark date rows with 'x'
+  protocols <- as.list(which(cleaned_output$V5=="X")) #Identify the row numbers in which X is marked
+  list_of_protocols <- list() #Create a list external of the for loop for breaking the output into seperate protocols
+  for (i in (1:length(protocols))){
+    if(i==length(protocols)){break} #break the loop once you are at the last protocol
+    list_of_protocols[[i]] <-  cleaned_output[(paste(protocols[i])):(paste(protocols[i+1])),] #subset from start of a protocol to the start of the next protocol
+  }
+  list_of_protocols[[i]] <- cleaned_output[(paste(protocols[i])):nrow(cleaned_output),] #puts the last protocol into the list (for loop above cannot account for last protocol)
 
-          # (2) Extract Protocol Details ----
+  # Section 1.3 -------------------------------------------------------------
+  #Given that the protocols have been put into a list called "list_of_protocols", we can now ...
+  # ... enter each of the protocols and extract the relevant information
+  #This section is further divided into subsections, each which extract a 'group' of information
+  protocol_output_list <- list()
 
-          date <- substr(gsub("T","",(output$V2[output$V1=="date"][1])), 1,10)
-          timeProtocolStarted <-  paste0(substr(gsub("T","",(output$V2[output$V1=="date"][1])), 11,12),":", substr(gsub("T","",(output$V3[output$V1=="date"][1])), 1,2))
-          site <- Site
-          format <- "NF"
-          extractedBy <- Version
+  for (i in (1:length(list_of_protocols))){
 
-          protocol <- as.character(output$V2[output$V1=="protocol"])
-          numberofPracticeTrials <- as.character(output$V2[output$V1=="numTrainingTrials"][1])
-          numberofTestTrials <- as.character(output$V2[output$V1=="numTrials"][1])
-          stim1amplitude <- as.character(output$V2[output$V1=="amplitude"])[1]
-          stim2amplitude <- as.character(output$V2[output$V1=="amplitude"])[2]
-          astim1amplitude <- as.character(output$V2[output$V1=="amplitude"])[3]
-          astim2amplitude <- as.character(output$V2[output$V1=="amplitude"])[4]
+    current_protocol_for_current_participant <- list_of_protocols[[i]] #create a dataframe with the current protocol for the current participant
+    rownames(current_protocol_for_current_participant) <- c() #clear all the row numbers for convenience
 
-          stim1duration <- as.character(output$V2[output$V1=="duration"])[1]
-          stim2duration <- as.character(output$V2[output$V1=="duration"])[2]
-          astim1duration <- as.character(output$V2[output$V1=="duration"])[3]
-          astim2duration <- as.character(output$V2[output$V1=="duration"])[4]
+    # Section 1.3.1 -----------------------------------------------------------
+    #Extract participant details
+    id <- as.character(current_protocol_for_current_participant$V2[current_protocol_for_current_participant$V1=="number"])[1]
+    race <- as.character(current_protocol_for_current_participant$V2[current_protocol_for_current_participant$V1=="race"])[1]
+    gender <- as.character(current_protocol_for_current_participant$V2[current_protocol_for_current_participant$V1=="gender"])[1]
+    handedness <- as.character(current_protocol_for_current_participant$V2[current_protocol_for_current_participant$V1=="handedness"])[1]
+    birthYear <- as.character(current_protocol_for_current_participant$V2[current_protocol_for_current_participant$V1=="birthYear"])[1]
 
-          #output$V1[output$V1=="ITI"] <- "ISI" #for the new format, ISI is referred to as ITI
-          ISI <- suppressWarnings(as.numeric(as.character(output$V2[output$V1=="ITI"][1])))
+    participant_details <- cbind(id, race, gender, handedness, birthYear) #create a dataframe with all participant details
 
-          originalFilename <- list_of_filenames[p]
+    # Section 1.3.2 -----------------------------------------------------------
+    #Extract session details
+    timeProtocolStarted <-  paste0(substr(gsub("T","",(current_protocol_for_current_participant$V2[current_protocol_for_current_participant$V1=="date"][1])), 11,12),":", substr(gsub("T","",(current_protocol_for_current_participant$V3[current_protocol_for_current_participant$V1=="date"][1])), 1,2)) #what time did the current protocol start
+    site <- Site #what site were they tested at
 
-          protocolDetails <- as.data.frame(cbind(date, timeProtocolStarted, site, format, extractedBy, protocol, numberofPracticeTrials, numberofTestTrials, ISI,
-                                             stim1amplitude, stim2amplitude,
-                                             astim1amplitude, astim2amplitude,
-                                             stim1duration, stim2duration,
-                                             astim1duration, astim2duration, originalFilename))
+    #To determine which session this protocol is, we need to compare the date and time of this protocol to the data_and_times_dataframe created inSection 1.1
+    #To do this, we need to first convert the date and time of the protocol time stamp to POSIXct so that it can be compared
+    date <- stringr::str_sub(current_protocol_for_current_participant$V2[current_protocol_for_current_participant$V1=="date"],1,10)[1] #format date
+    hours <- stringr::str_sub(current_protocol_for_current_participant$V2[current_protocol_for_current_participant$V1=="date"], 12, 14)[1] #format time - hours
+    minutes <- current_protocol_for_current_participant$V3[current_protocol_for_current_participant$V1=="date"][1] #format time - minutes
+    seconds <- current_protocol_for_current_participant$V4[current_protocol_for_current_participant$V1=="date"][1]
+    time <- paste0(hours,":",minutes,":", seconds)[1] #format time - hours and minutes
+    date_times <- paste(date, time)[1] #format date-time
+    date_times_formatted <- sort(as.POSIXct(date_times,format="%Y-%m-%d %H:%M:%S"))[1] #convert to POSIXct and sort in ascending order
+    session <- date_and_times_dataframe$session[date_and_times_dataframe$date_and_time==date_times_formatted][1] #extract the session number on data_and_times_dataframe for this protocol
+    session_details <- cbind(date, time, site, session)
 
-          # (3) Extract Performance details ----
-          value <- as.character(output$V2[output$V1=="value"])
-          expected <- as.character(output$V2[output$V1=="expected"])
-          response <- as.character(output$V2[output$V1=="response"])
-          correctResponse <- as.character(output$V2[output$V1=="correct"])
-          responseTime <- as.character(output$V2[output$V1=="responseTime"])
+    # Section 1.3.3.1 ---------------------------------------------------------
+    #Extract protocol details
+    #Each protocol will have a protocol number, followed by details on how many practice/test trials there were ...
+    # ... as well as the amplitude and duration of the stimuli
+    protocol <- as.character(current_protocol_for_current_participant$V2[current_protocol_for_current_participant$V1=="protocol"]) #protocol number
+    numberofPracticeTrials <- as.character(current_protocol_for_current_participant$V2[current_protocol_for_current_participant$V1=="numTrainingTrials"][1]) #number of practice trials
+    numberofTestTrials <- as.character(current_protocol_for_current_participant$V2[current_protocol_for_current_participant$V1=="numTrials"][1]) #number of test trials
+    ISI <- suppressWarnings(as.numeric(as.character(current_protocol_for_current_participant$V2[current_protocol_for_current_participant$V1=="ITI"][1]))) #interval between stimuli (interstimlus interval)
 
-          performanceDetails <- as.data.frame(cbind(value, expected, response, correctResponse, responseTime))
+    protocol_details <- cbind(protocol, numberofPracticeTrials, numberofTestTrials, ISI)
 
-          All <- cbind(participantDetails, protocolDetails, performanceDetails)
+    # Section 1.3.3 -----------------------------------------------------------
+    #Extract stimulus details
+    #The stimuli are divided into:
+    #stim1 - the first stimulus
+    #stim2  - the second stimulus
+    #astim1 - the first adaptive stimulus
+    #astim2 - the second adaptive stimulus
 
-          All$trialNumber <- 1:nrow(All)
+    #Each stimuli will have amplitude, frequency and duration
 
-          ProtocolOutputList[[i]] <- All
-        }
+    # Section 1.3.3.2 ---------------------------------------------------------
+    # Stimulus characteristics
+      #stim1
+      stim1amplitude <- as.character(current_protocol_for_current_participant$V2[current_protocol_for_current_participant$V1=="amplitude"])[1]
+      stim1frequency <- as.character(current_protocol_for_current_participant$V2[current_protocol_for_current_participant$V1=="frequency"])[1]
+      stim1duration <- as.character(current_protocol_for_current_participant$V2[current_protocol_for_current_participant$V1=="duration"])[1]
 
-      participantTactileData <- do.call(rbind.data.frame, ProtocolOutputList)
+      #stim2
+      stim2amplitude <- as.character(current_protocol_for_current_participant$V2[current_protocol_for_current_participant$V1=="amplitude"])[2]
+      stim2frequency <- as.character(current_protocol_for_current_participant$V2[current_protocol_for_current_participant$V1=="frequency"])[2]
+      stim2duration <- as.character(current_protocol_for_current_participant$V2[current_protocol_for_current_participant$V1=="duration"])[2]
 
-      #Change correctResponse to a 0 or 1 numeric (currently its in true or false, I just want to standardise this between the old and new format, also string descriptions are not useful here)
-        participantTactileData$correctResponse  <- as.character(participantTactileData$correctResponse)
-        participantTactileData$correctResponse[participantTactileData$correctResponse=="true"] <- "1"
-        participantTactileData$correctResponse[participantTactileData$correctResponse=="false"] <- "0"
+      #astim1
+      astim1amplitude <- as.character(current_protocol_for_current_participant$V2[current_protocol_for_current_participant$V1=="amplitude"])[3]
+      astim1frequency <- as.character(current_protocol_for_current_participant$V2[current_protocol_for_current_participant$V1=="frequency"])[3]
+      astim1duration <- as.character(current_protocol_for_current_participant$V2[current_protocol_for_current_participant$V1=="duration"])[3]
 
-        if(debugging=="on"){print("(SECTION 1.3: For loop through the protocols in the folder and extracting the participant/protocol/performance details) - COMPLETED")}
+      #astim2
+      astim2amplitude <- as.character(current_protocol_for_current_participant$V2[current_protocol_for_current_participant$V1=="amplitude"])[3]
+      astim2frequency <- as.character(current_protocol_for_current_participant$V2[current_protocol_for_current_participant$V1=="frequency"])[3]
+      astim2duration <- as.character(current_protocol_for_current_participant$V2[current_protocol_for_current_participant$V1=="duration"])[3]
 
-      # SECTION 1.4 (label the protocols) ----
-        #Label protocols with names (note that this is done in a specific order since sometimes protocols share numeric codes
-        #Note, there are far more protocols in the new format than the old format, hence the greater number of protocol numbers
+      stimulus_characteristics <- cbind(stim1amplitude, stim1frequency, stim1duration,
+                                        stim2amplitude, stim2frequency, stim2duration,
+                                        astim1amplitude, astim1frequency, astim1duration,
+                                        astim2amplitude, astim2frequency, astim2duration)
 
-        participantTactileData$protocolName[participantTactileData$protocol==801] <- "Simple Reaction Time"
-        participantTactileData$protocolName[participantTactileData$protocol==800] <- "Choice Reaction Time"
+    # Section 1.3.3.3 ---------------------------------------------------------
+    #Extract participant performance details
+    #While the details extracted thus far are constant, the performance data is updated every trial
+    #Below, we extract the trial-level data for the current protocol, for the current participant
+    #Peformance data is split into:
+    # Value: what was the current 'value' for the given protocols, which can be any of the stimulus characterisics described above
+    # The value will change based on the protocol type (e.g., the value for duration discrimination is stimulus duration)
+    # Expected: what was the expected response for the current trial
+    # Response: what was the participant's response for the current trial
+    # Response Time: what was the participant's response time for the current trial
+    trialNumber <- 1:length(current_protocol_for_current_participant$V2[current_protocol_for_current_participant$V1=="value"]) #Note to self, potentially replace with numTrials
+    value <- as.character(current_protocol_for_current_participant$V2[current_protocol_for_current_participant$V1=="value"])
+    expected <- as.character(current_protocol_for_current_participant$V2[current_protocol_for_current_participant$V1=="expected"])
+    response <- as.character(current_protocol_for_current_participant$V2[current_protocol_for_current_participant$V1=="response"])
+    correctResponse <- as.character(current_protocol_for_current_participant$V2[current_protocol_for_current_participant$V1=="correct"])
+    responseTime <- as.character(current_protocol_for_current_participant$V2[current_protocol_for_current_participant$V1=="responseTime"])
 
-        participantTactileData$protocolName[participantTactileData$protocol==100 & participantTactileData$stim1amplitude==0] <- "Static Detection Threshold"
-        participantTactileData$protocolName[participantTactileData$protocol==900 & participantTactileData$stim1amplitude==0] <- "Static Detection Threshold"
-        participantTactileData$protocolName[participantTactileData$protocol==910 & participantTactileData$ISI==5000] <- "Static Detection Threshold"
+    performance_details <- cbind(trialNumber, value, expected, response, correctResponse, responseTime)
 
-        participantTactileData$protocolName[participantTactileData$protocol==910 & participantTactileData$ISI==30] <- "Static Detection Threshold with Adaptation ISI 30"
-        participantTactileData$protocolName[participantTactileData$protocol==910 & participantTactileData$ISI==100] <- "Static Detection Threshold with Adaptation ISI 100"
+    # Section 1.3.3.4 ---------------------------------------------------------
+    #Store the miscellaneous information that is otherwise useful
+    originalFilename <- list_of_filenames[p] #what was the original filename
+    format <- "NF" # Format of data: OF = data collected with research grade cortical metrics stimulator, "NF" = data collected with brain gauge mice
+    extractedBy <- Version #What version of BATD was used to extract this participant's data
 
-        participantTactileData$protocolName[participantTactileData$protocol==713] <- "Dynamic Detection Threshold"
-
-        participantTactileData$protocolName[participantTactileData$protocol==900 & participantTactileData$stim1amplitude==100] <- "Sequential Amplitude Discrimination"
-        participantTactileData$protocolName[participantTactileData$protocol==100 &  participantTactileData$stim1amplitude==100] <- "Sequential Amplitude Discrimination"
-
-        participantTactileData$protocolName[participantTactileData$protocol==100 & participantTactileData$protocolName != "Static Detection Threshold"]
-
-        participantTactileData$protocolName[participantTactileData$protocol==900 & participantTactileData$stim2amplitude!=0] <- "Simultaneous Amplitude Discrimination"
-        participantTactileData$protocolName[participantTactileData$protocol==105] <- "Simultaneous Amplitude Discrimination"
-
-        participantTactileData$protocolName[participantTactileData$protocol==905 & participantTactileData$ISI==100] <- "Sequential Amplitude Discrimination" #Sequential amplitude discrimination for Calgary
-
-        participantTactileData$protocolName[participantTactileData$protocol==925] <- "Sequential Frequency Discrimination"
-        participantTactileData$protocolName[participantTactileData$protocol==920] <- "Simultaneous Frequency Discrimination"
-
-        participantTactileData$protocolName[participantTactileData$protocol==171 & participantTactileData$astim2amplitude==100] <- "Amplitude Discrimination with Single Site Adaptation"
-        participantTactileData$protocolName[participantTactileData$protocol==171 & participantTactileData$astim1amplitude==100] <- "Amplitude Discrimination with Dual Site Adaptation"
-
-        participantTactileData$protocolName[participantTactileData$protocol==171 & participantTactileData$astim1amplitude==200] <- "Dual Staircase Amplitude Discrimination (up)"
-        participantTactileData$protocolName[participantTactileData$protocol==171 & participantTactileData$astim2amplitude==200] <- "Dual Staircase Amplitude Discrimination (down)"
-
-        participantTactileData$protocolName[participantTactileData$protocol==350] <- "Duration Discrimination"
-        participantTactileData$protocolName[participantTactileData$protocol==950] <- "Duration Discrimination"
-
-        participantTactileData$protocolName[participantTactileData$protocol==930] <- "Temporal Order Judgement"
-        participantTactileData$protocolName[participantTactileData$protocol==931] <- "Temporal Order Judgement with Carrier"
-
-        if(debugging=="on"){print("(SECTION 1.4: label the protocols - COMPLETED")}
-
-      # SECTION 1.5 (#Accounting for session) ----
-        #Create a column for the sessions a participant completed (based on the date)
-        participantTactileData$date <- as.Date(participantTactileData$date)
-        dates <- sort(unique(participantTactileData$date))
-        timePointList <- list()
-
-        for (d in 1:length(dates)){
-          givenDate <- participantTactileData[participantTactileData$date==dates[d],]
-          givenDate$session <- d
-          timePointList[[d]] <- givenDate}
-
-        participantTactileData <- plyr::rbind.fill(timePointList)
-
-        #Split the dataframe into the sessions
-        sessions <- unique(participantTactileData$session)
-        sessionDataList <- list()
-        for(s in 1:length(sessions)){
-          participantData_at_s_session <- participantTactileData[participantTactileData$session==sessions[s],] #subset to the current session
-          participantData_at_s_session$timeProtocolStarted <- as.POSIXct(participantData_at_s_session$timeProtocolStarted,format="%H:%M") #convert the time variable to time (ignore the inclusion of the current YEAR)
-          participantData_at_s_session <- participantData_at_s_session[with(participantData_at_s_session, order(participantData_at_s_session$timeProtocolStarted)),] #sort in ascending order based on the time the protocol was completed
-          participantData_at_s_session$orderCompleted <- cumsum(c(0,as.numeric(diff(participantData_at_s_session$timeProtocolStarted))!=0)) + 1 #create a column for the completion order of the protocols (I cannot remember how the cumsum function works)
-          sessionDataList[[s]] <- participantData_at_s_session
-        }
-        participantTactileData <- plyr::rbind.fill(sessionDataList)
-
-        if(debugging=="on"){print("(SECTION 1.5: Accounting for sessions - COMPLETED")}
-        allProtocolOutputs <- participantTactileData
+    miscellaneous_information <- cbind(originalFilename, format, extractedBy)
 
 
-      # SECTION 1.6 (Accounting for discrimination tasks not subtracting the comparison stimulus (this issue is specific to the new format at some sites (i.e., University of Calgary))) ----
+    # Section 1.3.3.5 ---------------------------------------------------------
+    #Combine all the extracted details and save it in a list
 
+    all_details <- cbind(participant_details,
+                         session_details,
+                         protocol_details,
+                         stimulus_characteristics,
+                         miscellaneous_information)
+
+    all_details <- all_details[rep(seq_len(nrow(all_details)), each = nrow(performance_details)), ] #repeat all_details to make it have the same rows as performance_details (so they can be joined)
+    all_extracted_data <- as.data.frame(cbind(all_details, performance_details))
+    protocol_output_list[[i]] <- all_extracted_data
+
+    print(paste('protocol', protocol, 'extracted'))
+  }
+
+  participantTactileData <- do.call(rbind.data.frame, protocol_output_list) #combine all the protocols for the current participant into a dataframe
+
+  #Change correctResponse to a 0 or 1 numeric (currently its in true or false, I just want to standardise this between the old and new format, also string descriptions are not useful here)
+    participantTactileData$correctResponse  <- as.character(participantTactileData$correctResponse)
+    participantTactileData$correctResponse[participantTactileData$correctResponse=="true"] <- "1"
+    participantTactileData$correctResponse[participantTactileData$correctResponse=="false"] <- "0"
+
+  # Section 1.4 -------------------------------------------------------------
+    #Label protocols with names
+    #There are subsections for RT protocols, Detection tasks, Discrimination tasks, and Judgement tasks
+    # * Note that this is done in a specific order since sometimes protocols share numeric codes
+    # * Note, there are far more protocols in the new format than the old format, hence the greater number of protocol numbers
+
+    # Reaction time
+      # Simple
+      participantTactileData$protocolName[participantTactileData$protocol==801] <- "Simple Reaction Time"
+
+      # Choice
+      participantTactileData$protocolName[participantTactileData$protocol==800] <- "Choice Reaction Time"
+
+    #Detection
+      # Static
+      participantTactileData$protocolName[participantTactileData$protocol==100 & participantTactileData$stim1amplitude==0] <- "Static Detection Threshold"
+      participantTactileData$protocolName[participantTactileData$protocol==900 & participantTactileData$stim1amplitude==0] <- "Static Detection Threshold"
+      participantTactileData$protocolName[participantTactileData$protocol==910 & participantTactileData$ISI==5000] <- "Static Detection Threshold"
+      participantTactileData$protocolName[participantTactileData$protocol==910 & participantTactileData$ISI==30] <- "Static Detection Threshold with Adaptation ISI 30"
+      participantTactileData$protocolName[participantTactileData$protocol==910 & participantTactileData$ISI==100] <- "Static Detection Threshold with Adaptation ISI 100"
+
+      # Dynamic
+      participantTactileData$protocolName[participantTactileData$protocol==713] <- "Dynamic Detection Threshold"
+
+    #Discrimination
+      # Amplitude
+      participantTactileData$protocolName[participantTactileData$protocol==900 & participantTactileData$stim1amplitude==100] <- "Sequential Amplitude Discrimination"
+      participantTactileData$protocolName[participantTactileData$protocol==100 &  participantTactileData$stim1amplitude==100] <- "Sequential Amplitude Discrimination"
+      participantTactileData$protocolName[participantTactileData$protocol==900 & participantTactileData$stim2amplitude!=0] <- "Simultaneous Amplitude Discrimination"
+      participantTactileData$protocolName[participantTactileData$protocol==105] <- "Simultaneous Amplitude Discrimination"
+      participantTactileData$protocolName[participantTactileData$protocol==905 & participantTactileData$ISI==100] <- "Sequential Amplitude Discrimination" #Sequential amplitude discrimination for Calgary
+      participantTactileData$protocolName[participantTactileData$protocol==171 & participantTactileData$astim2amplitude==100] <- "Amplitude Discrimination with Single Site Adaptation"
+      participantTactileData$protocolName[participantTactileData$protocol==171 & participantTactileData$astim1amplitude==100] <- "Amplitude Discrimination with Dual Site Adaptation"
+      participantTactileData$protocolName[participantTactileData$protocol==171 & participantTactileData$astim2amplitude==200] <- "Dual Staircase Amplitude Discrimination (up)"
+      participantTactileData$protocolName[participantTactileData$protocol==171 & is.na(participantTactileData$protocolName)] <- "Dual Staircase Amplitude Discrimination (down)"
+
+      # Frequency
+      participantTactileData$protocolName[participantTactileData$protocol==925] <- "Sequential Frequency Discrimination"
+      participantTactileData$protocolName[participantTactileData$protocol==920] <- "Simultaneous Frequency Discrimination"
+
+    #Duration
+      participantTactileData$protocolName[participantTactileData$protocol==350] <- "Duration Discrimination"
+      participantTactileData$protocolName[participantTactileData$protocol==950] <- "Duration Discrimination"
+
+    #Judgement
+      # Order
+      participantTactileData$protocolName[participantTactileData$protocol==930] <- "Temporal Order Judgement"
+      participantTactileData$protocolName[participantTactileData$protocol==931] <- "Temporal Order Judgement with Carrier"
+
+
+  # Section 1.5 -------------------------------------------------------------
+  # Accounting for discrimination tasks not subtracting the comparison stimulus
+      #this issue is specific to the new format at some sites (i.e., University of Calgary)))
       if(Site == "University of Calgary"){
-        allProtocolOutputs$value[grep("Amplitude Discrimination", allProtocolOutputs$protocolName)] <- allProtocolOutputs$value[grep("Amplitude Discrimination", allProtocolOutputs$protocolName)]-200
-        allProtocolOutputs$value[grep("Frequency Discrimination", allProtocolOutputs$protocolName)] <- allProtocolOutputs$value[grep("Frequency Discrimination", allProtocolOutputs$protocolName)]-30
+        participantTactileData$value[grep("Amplitude Discrimination", participantTactileData$protocolName)] <- participantTactileData$value[grep("Amplitude Discrimination", participantTactileData$protocolName)]-200
+        participantTactileData$value[grep("Frequency Discrimination", participantTactileData$protocolName)] <- participantTactileData$value[grep("Frequency Discrimination", participantTactileData$protocolName)]-30
       }
-
       if(Site %in% c("KKI","CCH","JHU")){
         #Note to self, this is a temporary brute force fix for the problem that we have where the number of trials completed by protocol are NOT equal
         #I will eventually need the code to recognize how many trials were completed within a given session, rather than assume it is exactly half of the total number of tirals completed
@@ -226,140 +338,44 @@ BATD_extract_NF <- function(list_of_filenames, Site){
 
         #The data collected from KKI, CCH and JHU has a peculiarity where the practice trials were saved as a protocol within themselves (for only SOME protocols), something that is not the case with data collected elsewhere
         #The code below fixes the issue by assigning all protocols to have 3 practice trials, and 20 test trials (which is *currently* true)
-        allProtocolOutputs$numberofPracticeTrials[is.na(allProtocolOutputs$numberofPracticeTrials)] <- allProtocolOutputs$numberofTestTrials[is.na(allProtocolOutputs$numberofPracticeTrials)]
-        allProtocolOutputs$numberofTestTrials <- 20
+        participantTactileData$numberofPracticeTrials[is.na(participantTactileData$numberofPracticeTrials)] <- participantTactileData$numberofTestTrials[is.na(participantTactileData$numberofPracticeTrials)]
+        participantTactileData$numberofTestTrials <- 20
       }
 
-        if(debugging=="on"){print("(SECTION 1.6: (Accounting for discrimination tasks not subtracting the comparison stimulus - COMPLETED")}
+  # Section 1.6 ------------------------------------------------------------
+  #Saving individual data csv files for each participant
+    currentDirectory <- getwd() #remember the current wd
+    setwd(outputDirectory) #setwd to the outputDirectory
+    write.csv(participantTactileData, file = paste0("BATD_extracted_", list_of_filenames[p],"_NF.csv")) #save the output of all the protocols for each participant as a csv
+    setwd(currentDirectory) #return to the currentDirectory
 
-      # SECTION 1.7 (Tidying up the dataframe) ----
-
-      #Change performance column values to numeric
-      allProtocolOutputs <- suppressWarnings(as.data.frame(allProtocolOutputs))
-      allProtocolOutputs[,20:25] <- suppressWarnings(sapply(allProtocolOutputs[,20:25], suppressWarnings(as.character))) #supressWarnings is on because some values are already NA and then turn into NA
-      allProtocolOutputs[,20:25] <- suppressWarnings(sapply(allProtocolOutputs[,20:25], suppressWarnings(as.numeric)))
-
-      if(debugging=="on"){print("(SECTION 1.7: Tidying up the dataframe - COMPLETED")}
-
-      # SECTION 1.8 (Saving individual extracted csv files) ----
-      currentDirectory <- getwd() #remember the current wd
-      setwd(outputDirectory) #setwd to the outputDirectory
-      write.csv(allProtocolOutputs, file = paste0("BATD_extracted_", list_of_filenames[p],"_NF.csv")) #save the output of all the protocols for each participant as a csv
-      setwd(currentDirectory) #return to the currentDirectory
-      allParticipantsOutput[[p]] <- as.data.frame(allProtocolOutputs)
-      if(debugging=="on"){print("(SECTION 1.8: Saving individual extracted csv files - COMPLETED")}
-      print(paste("Extracted participant:", id))
-
-  } #exit for loop from SECTION 1
-
-    if(debugging=="on"){print("Succesfully Completed SECTION 1: For loop exited")}
-
-    allParticipantsOutput_combined <-  as.data.frame(data.table::rbindlist(allParticipantsOutput, fill = TRUE)) #combine the output into a unitary dataframe
-
-
-  ## SECTION 2 (Accounting for multiple runs ) -----
-    #I genuinely apologize for the stress that anyone who has to read through SECTION 2 of the code will inevitably go through, it is very convoluted and likely inefficient
-    #This section accounts for the fact that *some* protocols have participants complete the same protocol twice
-    #Here we account for this by splitting the data into a) the participants, b) the sessions that participant completed and c) the protocols completed by that participant within that session
-    #Once we are at the level of the protocols that participant completed, we then reorder the protocols completed using the TIME at which the protocol started
-    #We then give each protocol a number for the order in which it was completed
-    #Unfortunately, this has been done through a series of nested for loops, which makes it difficult to navigate and troubleshoot
-
-    # SECTION 2.1 (setup) ----
-    alldata <- allParticipantsOutput_combined #assign the output from SECTION 1 to a new dataframe called 'alldata'
-    alldata <- alldata[!is.na(alldata$protocolName),] #remove any rows where the protocol name is not avaialble (if the above has run correctly, this should not even be necessary)
-
-    uniqueParticipants <- unique(alldata$id) #identify the unique ids of all the participants that have been extracted
-    uniqueParticipants <- uniqueParticipants[!is.na(uniqueParticipants)] #remove any participants whose id is NA
-
-    #Create a series of external lists for the for loops below
-    participants_outPut_list <- list()
-    participants_detail_list <- list()
-    participant_data_after_accounting_for_runs <- list()
-
-    # SECTION 2.2 (split dataframe by unique participants) ----
-    for(x in 1:length(uniqueParticipants)){
-    participantData <- alldata[alldata$id==uniqueParticipants[x],] #subset to the current participant (denoted by uniqueParticipants[x])
-    #print(paste("ID at the start of the loop:",participantData$id[x]))
-    sessions <- unique(participantData$session) #identify the number of unique sessions completed by this participant (provided by Section 6, based on date)
-    sessions_for_loop_output <- list()
-
-    # SECTION 2.3 (split dataframe further into unique sessions completed by a given participant) ----
+  # Section 1.7 -------------------------------------------------------------
+  #Store the protocol outputs in the allParticipantsOutput list
+    allParticipantsOutput[[p]] <- as.data.frame(participantTactileData)
+  }
+  allParticipantsOutput_combined <-  as.data.frame(data.table::rbindlist(allParticipantsOutput, fill = TRUE)) #combine the output into a unitary dataframe
+# Section 2 ---------------------------------------------------------------
+#Accounting for runs
+  #Annotation pending
+list_for_runs <- list()
+participants <- unique(allParticipantsOutput_combined$id)
+for(p in 1:length(participants)){
+  current_p <- allParticipantsOutput_combined[allParticipantsOutput_combined$id==participants[p],]
+  sessions <- unique(current_p$session)
+  print(paste('participants:',current_p$id[1], ", session:",sessions))
     for(s in 1:length(sessions)){
-    participantSessionData <- participantData[participantData$session==sessions[s],] #subset to the current session
-    protocols_within_session_completed <- as.character(unique(participantSessionData$protocolName)) #identify the protocols that were completed within the given session
-    list_of_protocols_completed_with_runs <- list()
+    current_s <- current_p[current_p$session==sessions[s],]
+    times <- sort(unique(current_s$time), decreasing = TRUE)
+      for(t in 1:length(times)){
+      current_t <- current_p[current_p$time==times[t],]
+      t_repeated <- rep(t, times = nrow(current_t))
+      list_for_runs <- append(list_for_runs, t_repeated)
+      }}}
 
-    #SECTION 2.4 (split dataframe further into unique protocols completed by a given participant for a given session) ----
-    for(p in 1:length(protocols_within_session_completed)){
-    protocolName <- protocols_within_session_completed[p]
-    numberofRuns <- nlevels(as.factor(participantSessionData$orderCompleted[participantSessionData$protocolName==protocols_within_session_completed[p]]))
-    ProtocolRuns <- as.data.frame(cbind(protocolName, numberofRuns))
-    list_of_protocols_completed_with_runs[[p]] <- ProtocolRuns
-    }
+allParticipantsOutput_combined$run <- list_for_runs
 
-    protocols_completed_by_runs <- plyr::rbind.fill(list_of_protocols_completed_with_runs) #table with protocolNames and the number of runs for each protocolName
-    protocols_completed_by_runs$numberofRuns <- as.numeric(as.character(protocols_completed_by_runs$numberofRuns))
-    names_of_protocols_completed_more_than_once <- protocols_completed_by_runs$protocolName[as.numeric(as.character(protocols_completed_by_runs$numberofRuns)) > 1]
-    names_of_protocols_completed_only_once <- protocols_completed_by_runs$protocolName[protocols_completed_by_runs$numberofRuns == 1]
-
-    #SECTION 2.4.1 Create a column called run (and give number referring to the run number) ----
-    #Protocols completed more than once ----
-    if(length(names_of_protocols_completed_more_than_once) > 0){
-    #1. Identify which protocols were completed more than once, and how many times they were completed more than once
-    #2. subset to the protocol completed more than once and add this to a column called run
-
-      list_of_protocols_completed_more_than_once <- list()
-
-      for(o in 1:length(names_of_protocols_completed_more_than_once)){
-      protocol_completed_more_than_once <- participantSessionData[participantSessionData$protocolName==names_of_protocols_completed_more_than_once[o],] #subset to the protocol completed more than once
-      number_of_runs <- length(unique(protocol_completed_more_than_once$orderCompleted)) #identifies the number of runs
-      run_number <- unique(protocol_completed_more_than_once$orderCompleted) #identifies the run number
-
-      list_of_runs <- list()
-      for(r in 1:number_of_runs){
-      currentRun <- protocol_completed_more_than_once[protocol_completed_more_than_once$orderCompleted==run_number[r],] #subset to the 'r' unique run, given by the orderCompleted
-      currentRun$run <- r #apply run number to column
-      list_of_runs[[r]] <- currentRun
-      }
-      protocol_completed_more_than_once <- plyr::rbind.fill(list_of_runs)
-      list_of_protocols_completed_more_than_once[[p]] <- protocol_completed_more_than_once
-      }
-      all_protocols_completed_more_than_once <- plyr::rbind.fill(list_of_protocols_completed_more_than_once)
-
-    }#end of if length(names_of_protocols_completed_more_than_once > 0)
-
-    #protocols completed only once ----
-    if(length(names_of_protocols_completed_only_once) > 0){
-    all_protocols_completed_just_once <- participantSessionData[!participantSessionData$protocolName %in% names_of_protocols_completed_more_than_once,] #subset to the protocols only completed once
-    all_protocols_completed_just_once$run <- 1 #add run number
-
-    } #end of if length(names_of_protocols_completed_only_once > 0)
-
-    #Recombine the protocols completed more than once back with the protocols completed only once ----
-    if(length(names_of_protocols_completed_more_than_once) > 0){
-    combined_protocol_data <- rbind(all_protocols_completed_more_than_once, all_protocols_completed_just_once)
-    }
-    else {combined_protocol_data <- all_protocols_completed_just_once #if there were only protocols ocompleted once, than combined_protocol-data are just the protocols completed once
-    }
-    sessions_for_loop_output[[s]] <- combined_protocol_data
-  } #end of sessions loop
-
-  combined_protocol_data_with_runs <- plyr::rbind.fill(sessions_for_loop_output)
-  combined_protocol_data_with_runs <- combined_protocol_data_with_runs[with(combined_protocol_data_with_runs, order(combined_protocol_data_with_runs$orderCompleted)),] #sort though that the orderCompleted is in order again (was out of order based on rbind above)
-
-  participant_data_after_accounting_for_runs[[x]] <- combined_protocol_data_with_runs
-  # print(paste("ID at the end of the loop:",participantData$id[x]))
-
-  } #end of participant loop
-
-  combined_participant_data_after_accounting_for_runs <- plyr::rbind.fill(participant_data_after_accounting_for_runs)
-
-  if(debugging=="on"){print("Succesfully Completed SECTION 2: Runs accounted for")}
-
-
-
-  #SECTION 3 (Saving the combined data) ----
+# Section 3 ---------------------------------------------------------------
+#Saving the combined dataframe
   # setwd(inputDirectory)
   # dir.create("combined", showWarnings = FALSE) #set the wd to the folder where you wish to save the combined data to
   # combinedDirectory <- paste0(inputDirectory,"/combined") #automatically creates a folder in that directory named 'output' - if you already have a folder named output, ignore this code.
@@ -369,5 +385,5 @@ BATD_extract_NF <- function(list_of_filenames, Site){
   # print(paste0("Combined extracted data saved in:", combinedDirectory))
   # if(debugging=="on"){print("(Succesfully completed SECTION 3: Combined data saved")}
 
-  return(combined_participant_data_after_accounting_for_runs)
+  return(allParticipantsOutput_combined)
 }
