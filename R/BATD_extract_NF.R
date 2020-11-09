@@ -16,24 +16,6 @@
 #' @export
 
 BATD_extract_NF <- function(list_of_filenames, Site){
-
-#BATD Version:
-Version <- c("BATD_V.1.6")
-#Version 1.6. has made signficiant adjustments to the code, including:
-# . Streamlining of how sessions were accounted for (previously done in section 2, and based only on date)
-#  . Sessions now take into account date AND time, making it more sensitive. Sessions are counted as separate if they are 1000 seconds apart (~16 minutes )
-#  . This has been achieved by accounting for sessions earlier in the code, and back referencing to a dataframe which contains the date/time stamps of each protocol
-#  . The plan for V.1.7 is to make it so that runs (currently done in section 2) are also integrated into section 1
-#  . This will involve naming the protocols earlier in the code (currently done in section 1.4)
-#  . If this is achieved, section 2 can be removed all together
-# . Removal of debugging lines that were cluttering the code
-# . These changes have been made to improve the readability of the code, as it appears the likelihood of others using this code is increasing
-
-#The extraction function is divided into three separate sections containing subsections within them
-#Section 1 is the bulk of the function - it extracts the data from each file and saves a formatted version for each participant
-#Section 2 is used to make adjustments to the final dataset. Typically, these adjustments are integrated into Section 1 as I continue to update the script
-#Section 3 is used to save the combined data set in .csv file format
-
 #Index - W.I.P
 
 # Debugging ---------------------------------------------------------------
@@ -41,10 +23,26 @@ Version <- c("BATD_V.1.6")
   if(debugging=="on"){
     library(here)
     setwd(here("POND Data", "ARBA1"))
-    participants_from_ARBA1  <- list.files(here("POND Data", "ARBA1"), pattern = "-")
-    list_of_filenames <- participants_from_ARBA1[1]
-    Site <- "ARBA1"
+    list_of_filenames <- list.files(pattern = "-")[15]
+    site <- "ARBA1"
   }
+
+  #BATD Version:
+  Version <- c("BATD_V.1.6")
+  #Version 1.6. has made signficiant adjustments to the code, including:
+  # . Streamlining of how sessions were accounted for (previously done in section 2, and based only on date)
+  #  . Sessions now take into account date AND time, making it more sensitive. Sessions are counted as separate if they are 1000 seconds apart (~16 minutes )
+  #  . This has been achieved by accounting for sessions earlier in the code, and back referencing to a dataframe which contains the date/time stamps of each protocol
+  #  . The plan for V.1.7 is to make it so that runs (currently done in section 2) are also integrated into section 1
+  #  . This will involve naming the protocols earlier in the code (currently done in section 1.4)
+  #  . If this is achieved, section 2 can be removed all together
+  # . Removal of debugging lines that were cluttering the code
+  # . These changes have been made to improve the readability of the code, as it appears the likelihood of others using this code is increasing
+
+  #The extraction function is divided into three separate sections containing subsections within them
+  #Section 1 is the bulk of the function - it extracts the data from each file and saves a formatted version for each participant
+  #Section 2 is used to make adjustments to the final dataset. Typically, these adjustments are integrated into Section 1 as I continue to update the script
+  #Section 3 is used to save the combined data set in .csv file format
 
 # Setup -------------------------------------------------------------------
   '%ni%' <- Negate('%in%') #create the function for %not in%
@@ -56,6 +54,7 @@ Version <- c("BATD_V.1.6")
   #Entering the outer loop
   allParticipantsOutput <- list() #create a list for the output for each participant
   for(p in 1:length(list_of_filenames)){  #For loop through the participants identified in the inputDirectory
+
     setwd(inputDirectory) #set working directory to where all the Brain Gauge output files are saved
     output <- read.csv(list_of_filenames[p], header = FALSE) #read in the current participant's file (based on 'p')
     print(paste('now extracting details from file:', list_of_filenames[p]))
@@ -75,51 +74,46 @@ Version <- c("BATD_V.1.6")
 #Determine the number of sessions and create a dataframe which keeps track of when participants started and ended their session
   #identify all the date and time stamps
   date_and_times <- unique(cleaned_output[cleaned_output$V1=="date",]) #look at all the unique date/time stamps
-  date_and_times$protocol <- cleaned_output[cleaned_output$V1=="protocol",]$V2
-  rownames(date_and_times) <- c() #clear the row numbers
   date <- stringr::str_sub(as.character(date_and_times$V2),1,10) #format date
   hours <- stringr::str_sub(date_and_times$V2, 12, 13) #format time - hours
   minutes <- date_and_times$V3 #format time - minutes
   seconds <- stringr::str_sub(date_and_times$V4, 1, 2)
   time <- paste0(hours, ":", minutes, ":", seconds) #format time - hours and minutes
   date_times <- paste(date, time) #format date-time
-  date_times_formatted <- sort(as.POSIXct(date_times,format="%Y-%m-%d %H:%M:%S")) #convert to POSIXct and sort in ascending order
 
-  #Identify the time differences between each time stamp
-  list_of_time_differences <- list()
-  for(times in 1:length(date_times_formatted)){
-    protocol_a <- date_times_formatted[times + 1] #first protocol
-    protocol_b <- date_times_formatted[times] #second protocol
-    time_difference <- date_times_formatted[times + 1] - date_times_formatted[times]
-    list_of_time_differences[[times]] <- dplyr::bind_cols(list(protocol_a, protocol_b, time_difference))
-  }
+  #Clean up the date_and_times dataframe
+  date_and_times$V1 <- cleaned_output[cleaned_output$V1=="protocol",]$V2 #turn V1 into the protocol number column
+  date_and_times$V2 <- stringr::str_sub(as.character(date_and_times$V2),1,10) #Turn V2 into the date_started column
+  date_and_times$V3 <- time #turn V3 into the time started column
+  date_and_times$V4 <- as.POSIXct(date_times,format="%Y-%m-%d %H:%M:%S") #Turn V4 into date and time (used to sort by date AND time)
+  colnames(date_and_times) <- c("protocol", "date", "time", "date_and_time") #rename column names
+  date_and_times <- date_and_times[order(date_and_times$date_and_time),] #sort in order of ascending date and times
+  rownames(date_and_times) <- c() #clear the row numbers
+  date_and_times <- date_and_times[1:4]
+  date_and_times$time_difference <- date_and_times$date_and_time - lag(date_and_times$date_and_time) #create a time difference column
+  date_and_times$tag <- ifelse(abs(date_and_times$time_difference) > 1000, "start", NA)
+  date_and_times$tag[1] <- "start"
 
-  time_differences <- dplyr::bind_rows(list_of_time_differences)
-
-  #identify time stamps that have a difference larger than 1000 seconds (~16 minutes)
-    #time stamp differences > 1000 are almost certainly separate sessions (it is possible that participants complete sessions back to back, 16 minutes a safe difference)
-  end_of_session <- time_differences[time_differences$V3 > 1000 & !is.na(time_differences$V3 ),]
-  colnames(end_of_session) <- c("end_of_session", "start_of_session", "time_difference")
-  date_and_times$date_and_time <- date_times_formatted
-  date_and_times$timepoint <- ifelse(date_and_times$date_and_time %in% end_of_session$end_of_session, "end", "NA")
-  rows_where_protocol_ends <- rownames(date_and_times[date_and_times$timepoint=="end",])
-  rows_where_protocol_ends <- c(rows_where_protocol_ends, nrow(date_and_times)) #append the last row as an end point
 
   #For loop through the date_and_times and append session to them
-  number_of_sessions <- length(rows_where_protocol_ends) #identify the number of sessions
-  session_list <- list()
-  start <- 1
-  for(s in 1:number_of_sessions){
+  number_of_sessions <- sum(date_and_times$tag=="start", na.rm = TRUE) #identify the number of sessions
+  row_where_session_starts <- grep("start", date_and_times$tag)
 
-    if(s > number_of_sessions){break} #ends on the last iteration
-    data <- date_and_times[start:rows_where_protocol_ends[s],] #subset to the current session (from start to where end exists)
+  session_list <- list()
+  for(s in 1:number_of_sessions){
+    #Conditional IF accounting for the fact that the last start will not end at the start of the next start (since there won't be one)
+    if(s < number_of_sessions){
+      data <- date_and_times[row_where_session_starts[s]: (row_where_session_starts[s+1]-1),]
+    }else{
+      data <- date_and_times[row_where_session_starts[s]: nrow(date_and_times),]
+    }
     data$session <- s #add in session value
     session_list[[s]] <- data #store in list
-
     start <- start + nrow(data) #update start row
   }
 
   date_and_times_dataframe <- dplyr::bind_rows(session_list)
+
 
   # Section 1.2 -------------------------------------------------------------
   #Now that the dataframe has been cleaned by section 1.1, we need to divide the output into its constituent protocols
@@ -269,6 +263,10 @@ Version <- c("BATD_V.1.6")
 
   participantTactileData <- do.call(rbind.data.frame, protocol_output_list) #combine all the protocols for the current participant into a dataframe
 
+  #Recreate the time and date variable and sort all the data by time and date
+  participantTactileData$date_times_formatted <- paste(participantTactileData$date, participantTactileData$time)
+  participantTactileData$date_times_formatted <- as.POSIXct(participantTactileData$date_times_formatted,format="%Y-%m-%d %H:%M:%S")
+  participantTactileData <- participantTactileData[order(participantTactileData$date_times_formatted),]
   #Change correctResponse to a 0 or 1 numeric (currently its in true or false, I just want to standardise this between the old and new format, also string descriptions are not useful here)
     participantTactileData$correctResponse  <- as.character(participantTactileData$correctResponse)
     participantTactileData$correctResponse[participantTactileData$correctResponse=="true"] <- "1"
@@ -327,11 +325,11 @@ Version <- c("BATD_V.1.6")
   # Section 1.5 -------------------------------------------------------------
   # Accounting for discrimination tasks not subtracting the comparison stimulus
       #this issue is specific to the new format at some sites (i.e., University of Calgary)))
-      if(Site == "University of Calgary"){
+      if(site == "University of Calgary"){
         participantTactileData$value[grep("Amplitude Discrimination", participantTactileData$protocolName)] <- participantTactileData$value[grep("Amplitude Discrimination", participantTactileData$protocolName)]-200
         participantTactileData$value[grep("Frequency Discrimination", participantTactileData$protocolName)] <- participantTactileData$value[grep("Frequency Discrimination", participantTactileData$protocolName)]-30
       }
-      if(Site %in% c("KKI","CCH","JHU")){
+      if(site %in% c("KKI","CCH","JHU")){
         #Note to self, this is a temporary brute force fix for the problem that we have where the number of trials completed by protocol are NOT equal
         #I will eventually need the code to recognize how many trials were completed within a given session, rather than assume it is exactly half of the total number of tirals completed
         # allProtocolOutputs$sessions[allProtocolOutputs$protocolName=="Simultaneous Amplitude Discrimination"][25:52] <- 2
@@ -354,6 +352,7 @@ Version <- c("BATD_V.1.6")
     allParticipantsOutput[[p]] <- as.data.frame(participantTactileData)
   }
   allParticipantsOutput_combined <-  as.data.frame(data.table::rbindlist(allParticipantsOutput, fill = TRUE)) #combine the output into a unitary dataframe
+
 # Section 2 ---------------------------------------------------------------
 #Accounting for runs
   #Annotation pending
@@ -362,15 +361,18 @@ participants <- unique(allParticipantsOutput_combined$id)
 for(p in 1:length(participants)){
   current_p <- allParticipantsOutput_combined[allParticipantsOutput_combined$id==participants[p],]
   sessions <- unique(current_p$session)
+  print(paste("Participants:", participants[p]))
     for(s in 1:length(sessions)){
     current_s <- current_p[current_p$session==sessions[s],]
-    times <- sort(unique(current_s$time), decreasing = TRUE)
-    protocols_completed_in_session <- list()
-      for(t in 1:length(times)){
+    times <- unique(current_s$time)
+    print(paste('Session:',sessions[s]))
 
+      protocols_completed_in_session <- list()
+      for(t in 1:length(times)){
       current_t <- current_p[current_p$time==times[t],] #subset to current unique timepoint
       protocols_completed_in_session <- append(protocols_completed_in_session, current_t$protocolName[1]) #add the protocol completed to the protocols_completed_in_session list
       repeats <- sum(protocols_completed_in_session==current_t$protocolName[1]) #calculate number of repeats of this protocol
+
 
       if(repeats > 1){ #if there are more than 1 repeats of the current protocol, then repeat the value of the repeats by nrow of the current trial
         t_repeated <- rep(repeats, times = nrow(current_t))
@@ -380,14 +382,18 @@ for(p in 1:length(participants)){
 
       list_for_runs <- append(list_for_runs, t_repeated)
 
+      print(paste("Timepoint:", times[t], "; Protocol Completed:", current_t$protocolName[1]))
+      print(t_repeated)
+
       }}}
+
 allParticipantsOutput_combined$run <- unlist(list_for_runs)
 
 #Changing variables to the right format
 allParticipantsOutput_combined <- data.frame(lapply(allParticipantsOutput_combined, as.character), stringsAsFactors=FALSE)
 allParticipantsOutput_combined[9:25] <- sapply(allParticipantsOutput_combined[9:25], as.numeric)
-allParticipantsOutput_combined[29:34] <- sapply(allParticipantsOutput_combined[29:34], as.numeric)
-
+allParticipantsOutput_combined[29:30] <- sapply(allParticipantsOutput_combined[29:30], as.numeric)
+allParticipantsOutput_combined[30] <- sapply(allParticipantsOutput_combined[30], as.numeric)
 # Section 3 ---------------------------------------------------------------
 #Saving the combined dataframe
   # setwd(inputDirectory)

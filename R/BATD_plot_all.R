@@ -17,12 +17,11 @@ BATD_plot_all <- function(extracted_Data){
   Version <- c("BATD_V.1.6")
 
   #DEBUGGING ----
-  debugging <- "off"
+  debugging <- "on"
   if(debugging=="on"){
-    print("Note: Debugging on")
-    extracted_Data <- oldFormat_KKI
-    setwd("~/Dropbox/Documents/Data repository/Tactile Data/Master Plots/KKI")
-    extracted_Data <- ARBA1[ARBA1$id=="pond-0809",]
+    setwd(here("POND Data", "ARBA1"))
+    extracted_Data <- ARBA1[ARBA1$id=="pond-0869",]
+
   }
 
   #Setup ----
@@ -38,11 +37,11 @@ BATD_plot_all <- function(extracted_Data){
   participants_outPut_list <- list()
 
   for(x in 1:length(uniqueParticipants)){
-    print(paste0("Now plotting participant:", uniqueParticipants[x]))
 
+    print(paste0("Now plotting participant:", uniqueParticipants[x]))
     data <- extracted_Data[extracted_Data$id==uniqueParticipants[x],]
-    #identify the number of unique sessions
-    uniqueSessions <- sort(unique(data$session))
+    uniqueSessions <- sort(unique(data$session)) #identify the number of unique sessions
+
     list_of_all_plots_for_a_given_session <- list()
     for(s in uniqueSessions){
 
@@ -53,6 +52,7 @@ BATD_plot_all <- function(extracted_Data){
       list_of_all_plots_for_a_given_run <- list()
 
       for(r in 1:length(uniqueRuns)){
+        r <- 1
         sessionData_for_given_run <- sessionData[sessionData$run==uniqueRuns[r],]
 
         plot <- BATD_plot(sessionData_for_given_run)
