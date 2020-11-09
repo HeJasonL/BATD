@@ -17,7 +17,7 @@ BATD_plot_all <- function(extracted_Data){
   Version <- c("BATD_V.1.6")
 
   #DEBUGGING ----
-  debugging <- "on"
+  debugging <- "off"
   if(debugging=="on"){
     setwd(here("POND Data", "ARBA1"))
     extracted_Data <- ARBA1[ARBA1$id=="pond-0869",]
