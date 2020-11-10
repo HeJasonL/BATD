@@ -15,17 +15,18 @@
 #'
 #' @export
 
-BATD_extract_NF <- function(list_of_filenames, Site){
+BATD_extract_NF <- function(list_of_filenames, site){
 #Index - W.I.P
 
 # Debugging ---------------------------------------------------------------
   debugging <- "off"
   if(debugging=="on"){
-    library(here)
-    setwd(here("POND Data", "ARBA1"))
-    list_of_filenames <- list.files(pattern = "-")[15]
-    site <- "ARBA1"
+    setwd(here("data"))
+    list_of_data <- list.files(pattern = "SPIN", here("data"))
+    list_of_filenames <- list_of_data
+    site <- "SPIN"
   }
+
 
   #BATD Version:
   Version <- c("BATD_V.1.6")
@@ -90,7 +91,7 @@ BATD_extract_NF <- function(list_of_filenames, Site){
   date_and_times <- date_and_times[order(date_and_times$date_and_time),] #sort in order of ascending date and times
   rownames(date_and_times) <- c() #clear the row numbers
   date_and_times <- date_and_times[1:4]
-  date_and_times$time_difference <- date_and_times$date_and_time - lag(date_and_times$date_and_time) #create a time difference column
+  date_and_times$time_difference <- date_and_times$date_and_time - dplyr::lag(date_and_times$date_and_time) #create a time difference column
   date_and_times$tag <- ifelse(abs(date_and_times$time_difference) > 1000, "start", NA)
   date_and_times$tag[1] <- "start"
 
@@ -98,7 +99,7 @@ BATD_extract_NF <- function(list_of_filenames, Site){
   #For loop through the date_and_times and append session to them
   number_of_sessions <- sum(date_and_times$tag=="start", na.rm = TRUE) #identify the number of sessions
   row_where_session_starts <- grep("start", date_and_times$tag)
-
+  start <- 1
   session_list <- list()
   for(s in 1:number_of_sessions){
     #Conditional IF accounting for the fact that the last start will not end at the start of the next start (since there won't be one)
@@ -155,7 +156,6 @@ BATD_extract_NF <- function(list_of_filenames, Site){
     # Section 1.3.2 -----------------------------------------------------------
     #Extract session details
     timeProtocolStarted <-  paste0(substr(gsub("T","",(current_protocol_for_current_participant$V2[current_protocol_for_current_participant$V1=="date"][1])), 11,12),":", substr(gsub("T","",(current_protocol_for_current_participant$V3[current_protocol_for_current_participant$V1=="date"][1])), 1,2)) #what time did the current protocol start
-    site <- Site #what site were they tested at
 
     #To determine which session this protocol is, we need to compare the date and time of this protocol to the data_and_times_dataframe created inSection 1.1
     #To do this, we need to first convert the date and time of the protocol time stamp to POSIXct so that it can be compared
@@ -318,6 +318,7 @@ BATD_extract_NF <- function(list_of_filenames, Site){
 
     #Judgement
       # Order
+      participantTactileData$protocolName[participantTactileData$protocol==300] <- "Temporal Order Judgement"
       participantTactileData$protocolName[participantTactileData$protocol==930] <- "Temporal Order Judgement"
       participantTactileData$protocolName[participantTactileData$protocol==931] <- "Temporal Order Judgement with Carrier"
 
@@ -361,18 +362,14 @@ participants <- unique(allParticipantsOutput_combined$id)
 for(p in 1:length(participants)){
   current_p <- allParticipantsOutput_combined[allParticipantsOutput_combined$id==participants[p],]
   sessions <- unique(current_p$session)
-  print(paste("Participants:", participants[p]))
     for(s in 1:length(sessions)){
     current_s <- current_p[current_p$session==sessions[s],]
     times <- unique(current_s$time)
-    print(paste('Session:',sessions[s]))
-
       protocols_completed_in_session <- list()
       for(t in 1:length(times)){
       current_t <- current_p[current_p$time==times[t],] #subset to current unique timepoint
       protocols_completed_in_session <- append(protocols_completed_in_session, current_t$protocolName[1]) #add the protocol completed to the protocols_completed_in_session list
       repeats <- sum(protocols_completed_in_session==current_t$protocolName[1]) #calculate number of repeats of this protocol
-
 
       if(repeats > 1){ #if there are more than 1 repeats of the current protocol, then repeat the value of the repeats by nrow of the current trial
         t_repeated <- rep(repeats, times = nrow(current_t))
@@ -381,11 +378,9 @@ for(p in 1:length(participants)){
       }
 
       list_for_runs <- append(list_for_runs, t_repeated)
-
-      print(paste("Timepoint:", times[t], "; Protocol Completed:", current_t$protocolName[1]))
-      print(t_repeated)
-
-      }}}
+      }
+    }
+  }
 
 allParticipantsOutput_combined$run <- unlist(list_for_runs)
 
