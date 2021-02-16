@@ -19,18 +19,18 @@ BATD_extract_NF <- function(list_of_filenames, site){
 #Index - W.I.P
 
 # Debugging ---------------------------------------------------------------
-  debugging <- "off"
+  debugging <- "on"
   if(debugging=="on"){
-    setwd(here("data"))
-    list_of_data <- list.files(pattern = "SPIN", here("data"))
-    list_of_filenames <- list_of_data
-    site <- "SPIN"
+    #if debugging has been set on, you will need to set the environment up
+    setwd(here("Raw", "New Format", "KKI")) #first, set the wd to where your raw data is contained
+    list_of_data <- list.files(pattern = "-") #next create a list of that raw data
+    site <- "KKI" #specify the site at which this data was collected (make it "NA" if unsure)
   }
 
 
   #BATD Version:
   Version <- c("BATD_V.1.6")
-  #Version 1.6. has made signficiant adjustments to the code, including:
+  #Version 1.6. has made significant adjustments to the code, including:
   # . Streamlining of how sessions were accounted for (previously done in section 2, and based only on date)
   #  . Sessions now take into account date AND time, making it more sensitive. Sessions are counted as separate if they are 1000 seconds apart (~16 minutes )
   #  . This has been achieved by accounting for sessions earlier in the code, and back referencing to a dataframe which contains the date/time stamps of each protocol
@@ -74,7 +74,7 @@ BATD_extract_NF <- function(list_of_filenames, site){
   # Section 1.1 ------------------------------------------------------------
 #Determine the number of sessions and create a dataframe which keeps track of when participants started and ended their session
   #identify all the date and time stamps
-  date_and_times <- unique(cleaned_output[cleaned_output$V1=="date",]) #look at all the unique date/time stamps
+  date_and_times <- cleaned_output[cleaned_output$V1=="date",] #look at all the unique date/time stamps
   date <- stringr::str_sub(as.character(date_and_times$V2),1,10) #format date
   hours <- stringr::str_sub(date_and_times$V2, 12, 13) #format time - hours
   minutes <- date_and_times$V3 #format time - minutes
@@ -274,9 +274,17 @@ BATD_extract_NF <- function(list_of_filenames, site){
 
   # Section 1.4 -------------------------------------------------------------
     #Label protocols with names
-    #There are subsections for RT protocols, Detection tasks, Discrimination tasks, and Judgement tasks
+    #There are subsections for RT protocols, Detection tasks, Discrimination tasks, and Judgment tasks
     # * Note that this is done in a specific order since sometimes protocols share numeric codes
     # * Note, there are far more protocols in the new format than the old format, hence the greater number of protocol numbers
+
+    #As of version 1.7, protocol labeling has been changed to done separately for each site, rather than together all at once
+    #This means that the user will have to specify the site in the function itself
+    #'Site-specific labeling' which I am using to refer to this new method, is going to be the default
+    #If users do not specify the site, then the code will attempt to label the protocols based on the method used in version 1.6 and below
+    #This change was done in order to tackle the ongoing issue with trying to label all the protocols regardless of site, which led to various errors
+
+
 
     # Reaction time
       # Simple
