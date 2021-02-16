@@ -22,9 +22,9 @@ BATD_extract_NF <- function(list_of_filenames, site){
   debugging <- "on"
   if(debugging=="on"){
     #if debugging has been set on, you will need to set the environment up
-    setwd(here("Raw", "New Format", "KKI")) #first, set the wd to where your raw data is contained
-    list_of_data <- list.files(pattern = "-") #next create a list of that raw data
-    site <- "KKI" #specify the site at which this data was collected (make it "NA" if unsure)
+    setwd(here("Raw", "New Format", "CCH")) #first, set the wd to where your raw data is contained
+    list_of_filenames <- list.files(pattern = "-") #next create a list of that raw data
+    site <- "CCH" #specify the site at which this data was collected (make it "NA" if unsure)
   }
 
 
@@ -306,13 +306,18 @@ BATD_extract_NF <- function(list_of_filenames, site){
     participantTactileData <- dplyr::bind_rows(list_of_labelled_protocols)
 
     #Adjust for site customization
-    #KKI had single-site and dual-site adaptation protocols not present at other sites
     if(site == "KKI"){
       participantTactileData$protocolName[participantTactileData$protocol==171 & participantTactileData$astim2amplitude==100] <- "Amplitude Discrimination with Single Site Adaptation"
       participantTactileData$protocolName[participantTactileData$protocol==171 & participantTactileData$astim1amplitude==100] <- "Amplitude Discrimination with Dual Site Adaptation"
+      participantTactileData$protocolName[participantTactileData$protocol==910 & participantTactileData$ISI==30] <- "Static Detection Threshold with Adaptation ISI 30"
+      participantTactileData$protocolName[participantTactileData$protocol==910 & participantTactileData$ISI==100] <- "Static Detection Threshold with Adaptation ISI 100"
     }
 
+    if(site == "CCH"){
+      participantTactileData$protocolName[participantTactileData$protocol==171 & participantTactileData$astim2amplitude==100] <- "Amplitude Discrimination with Single Site Adaptation"
+      participantTactileData$protocolName[participantTactileData$protocol==171 & participantTactileData$astim1amplitude==100] <- "Amplitude Discrimination with Dual Site Adaptation"
 
+    }
 
 
 
