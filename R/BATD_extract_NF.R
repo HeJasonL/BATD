@@ -22,9 +22,9 @@ BATD_extract_NF <- function(list_of_filenames, site){
   debugging <- "on"
   if(debugging=="on"){
     #if debugging has been set on, you will need to set the environment up
-    setwd(here("Raw", "New Format", "CCH")) #first, set the wd to where your raw data is contained
+    setwd(here("Raw", "New Format", "ARBA1")) #first, set the wd to where your raw data is contained
     list_of_filenames <- list.files(pattern = "-") #next create a list of that raw data
-    site <- "CCH" #specify the site at which this data was collected (make it "NA" if unsure)
+    site <- "ARBA1" #specify the site at which this data was collected (make it "NA" if unsure)
   }
 
 
@@ -285,13 +285,24 @@ BATD_extract_NF <- function(list_of_filenames, site){
     #If users do not specify the site, then the code will attempt to label the protocols based on the method used in version 1.6 and below
     #This change was done in order to tackle the ongoing issue with trying to label all the protocols regardless of site, which led to various errors
 
+
     #read in the file from github that contains the site, and their protocol numbers/string_labels
-    url <- paste0("https://raw.githubusercontent.com/HeJasonL/BATD/master/Site%20specific%20protocols/",
-                  site, "/", #folder name
-                  site, "_protocol_names.csv") #file name
+
+    #if site is either KKI or CCH, read from this location
+    if(site %in% c("KKI", "CCH")){
+      url <- paste0("https://raw.githubusercontent.com/HeJasonL/BATD/master/Site%20specific%20protocols/",
+                    site, "/", #folder name
+                    site, "_protocol_names.csv") #file name
+    }
+
+    #If site is one of the ARBA sites, read from this location
+    if(site %in% c("ARBA1", "ARBA2", "ARBA3", "ARBA4")){
+      url <- paste0("https://raw.githubusercontent.com/HeJasonL/BATD/master/Site%20specific%20protocols/ARBA/ARBA_protocol_names.csv") #file name
+    }
 
     protocol_names <- read.csv(url, header = TRUE)
-    protocol_names
+
+
 
     protocols_completed <- unique(participantTactileData$protocol)
     list_of_labelled_protocols <- list()
