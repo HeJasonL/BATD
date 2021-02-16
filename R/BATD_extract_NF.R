@@ -273,6 +273,49 @@ BATD_extract_NF <- function(list_of_filenames, site){
     participantTactileData$correctResponse[participantTactileData$correctResponse=="false"] <- "0"
 
 
+    # Section 1.4 -------------------------------------------------------------
+    #Label protocols with names
+    #There are subsections for RT protocols, Detection tasks, Discrimination tasks, and Judgment tasks
+    # * Note that this is done in a specific order since sometimes protocols share numeric codes
+    # * Note, there are far more protocols in the new format than the old format, hence the greater number of protocol numbers
+
+    #As of version 1.7, protocol labeling has been changed to done separately for each site, rather than together all at once
+    #This means that the user will have to specify the site in the function itself
+    #'Site-specific labeling' which I am using to refer to this new method, is going to be the default
+    #If users do not specify the site, then the code will attempt to label the protocols based on the method used in version 1.6 and below
+    #This change was done in order to tackle the ongoing issue with trying to label all the protocols regardless of site, which led to various errors
+
+    #read in the file from github that contains the site, and their protocol numbers/string_labels
+    url <- paste0("https://raw.githubusercontent.com/HeJasonL/BATD/master/Site%20specific%20protocols/",
+                  site, "/", #folder name
+                  site, "_protocol_names.csv") #file name
+
+    protocol_names <- read.csv(url, header = TRUE)
+    protocol_names
+
+    protocols_completed <- unique(participantTactileData$protocol)
+    list_of_labelled_protocols <- list()
+
+    for(p in protocols_completed){
+      data_for_current_protocol_number <- participantTactileData[participantTactileData$protocol==p,]
+      data_for_current_protocol_number$protocolName <- protocol_names$protocol_string_label[protocol_names$protocol_number==p]
+      list_of_labelled_protocols[[p]] <- data_for_current_protocol_number
+    }
+
+    #recombine the labelled protocol data
+    participantTactileData <- dplyr::bind_rows(list_of_labelled_protocols)
+
+    #Adjust for site customization
+    #KKI had single-site and dual-site adaptation protocols not present at other sites
+    if(site == "KKI"){
+      participantTactileData$protocolName[participantTactileData$protocol==171 & participantTactileData$astim2amplitude==100] <- "Amplitude Discrimination with Single Site Adaptation"
+      participantTactileData$protocolName[participantTactileData$protocol==171 & participantTactileData$astim1amplitude==100] <- "Amplitude Discrimination with Dual Site Adaptation"
+    }
+
+
+
+
+
     # # Reaction time
     #   # Simple
     #   participantTactileData$protocolName[participantTactileData$protocol==801] <- "Simple Reaction Time"
@@ -349,36 +392,6 @@ BATD_extract_NF <- function(list_of_filenames, site){
   }
 
   allParticipantsOutput_combined <-  as.data.frame(data.table::rbindlist(allParticipantsOutput, fill = TRUE)) #combine the output into a unitary dataframe
-
-
-  # Section 1.4 -------------------------------------------------------------
-  #Label protocols with names
-  #There are subsections for RT protocols, Detection tasks, Discrimination tasks, and Judgment tasks
-  # * Note that this is done in a specific order since sometimes protocols share numeric codes
-  # * Note, there are far more protocols in the new format than the old format, hence the greater number of protocol numbers
-
-  #As of version 1.7, protocol labeling has been changed to done separately for each site, rather than together all at once
-  #This means that the user will have to specify the site in the function itself
-  #'Site-specific labeling' which I am using to refer to this new method, is going to be the default
-  #If users do not specify the site, then the code will attempt to label the protocols based on the method used in version 1.6 and below
-  #This change was done in order to tackle the ongoing issue with trying to label all the protocols regardless of site, which led to various errors
-
-  #read in the file from github that contains the site, and their protocol numbers/string_labels
-  url <- paste0("https://raw.githubusercontent.com/HeJasonL/BATD/master/Site%20specific%20protocols/",
-                site, "/", #folder name
-                site, "_protocol_names.csv") #file name
-
-  protocol_names <- read.csv(url, header = TRUE)
-
-
-  participantTactileData$protocolName <-
-
-    participantTactileData[participantTactileData$protocol,]
-
-
-#for a given protocol number, find the matching number in the protocol_names
-protocols_completed <- unique(participantTactileData$protocol)
-current_protocol_being_labelled <- participantTactileData[participantTactileData$protocol == protocols_completed[1],]
 
 
 
