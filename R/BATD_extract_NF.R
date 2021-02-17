@@ -177,8 +177,9 @@ BATD_extract_NF <- function(list_of_filenames, site){
     numberofPracticeTrials <- as.character(current_protocol_for_current_participant$V2[current_protocol_for_current_participant$V1=="numTrainingTrials"][1]) #number of practice trials
     numberofTestTrials <- as.character(current_protocol_for_current_participant$V2[current_protocol_for_current_participant$V1=="numTrials"][1]) #number of test trials
     ISI <- suppressWarnings(as.numeric(as.character(current_protocol_for_current_participant$V2[current_protocol_for_current_participant$V1=="ITI"][1]))) #interval between stimuli (interstimlus interval)
+    interval_between_adaptive_and_test <- suppressWarnings(as.numeric(as.character(current_protocol_for_current_participant$V2[current_protocol_for_current_participant$V1=="intervalBetweenAdaptAndTest"][1]))) #interval between stimuli (interstimlus interval)
 
-    protocol_details <- cbind(protocol, numberofPracticeTrials, numberofTestTrials, ISI)
+    protocol_details <- cbind(protocol, numberofPracticeTrials, numberofTestTrials, ISI, interval_between_adaptive_and_test)
 
     # Section 1.3.3 -----------------------------------------------------------
     #Extract stimulus details
@@ -307,10 +308,10 @@ BATD_extract_NF <- function(list_of_filenames, site){
     protocols_completed <- unique(participantTactileData$protocol)
     list_of_labelled_protocols <- list()
 
-    for(p in protocols_completed){
-      data_for_current_protocol_number <- participantTactileData[participantTactileData$protocol==p,]
-      data_for_current_protocol_number$protocolName <- protocol_names$protocol_string_label[protocol_names$protocol_number==p][1]
-      list_of_labelled_protocols[[p]] <- data_for_current_protocol_number
+    for(pc in protocols_completed){
+      data_for_current_protocol_number <- participantTactileData[participantTactileData$protocol==pc,]
+      data_for_current_protocol_number$protocolName <- protocol_names$protocol_string_label[protocol_names$protocol_number==pc][1]
+      list_of_labelled_protocols[[pc]] <- data_for_current_protocol_number
     }
 
     #recombine the labelled protocol data
@@ -320,8 +321,8 @@ BATD_extract_NF <- function(list_of_filenames, site){
     if(site == "KKI"){
       participantTactileData$protocolName[participantTactileData$protocol==171 & participantTactileData$astim2amplitude==100 & participantTactileData$astim1amplitude==0] <- "Amplitude Discrimination with Single Site Adaptation"
       participantTactileData$protocolName[participantTactileData$protocol==171 & participantTactileData$astim1amplitude==100] <- "Amplitude Discrimination with Dual Site Adaptation"
-      participantTactileData$protocolName[participantTactileData$protocol==910 & participantTactileData$ISI==30] <- "Static Detection Threshold with Adaptation ISI 30"
-      participantTactileData$protocolName[participantTactileData$protocol==910 & participantTactileData$ISI==100] <- "Static Detection Threshold with Adaptation ISI 100"
+      participantTactileData$protocolName[participantTactileData$protocol==910 & participantTactileData$interval_between_adaptive_and_test==30] <- "Static Detection Threshold with Adaptation ISI 30"
+      participantTactileData$protocolName[participantTactileData$protocol==910 & participantTactileData$interval_between_adaptive_and_test==100] <- "Static Detection Threshold with Adaptation ISI 100"
     }
 
     if(site == "CCH"){
@@ -337,81 +338,6 @@ BATD_extract_NF <- function(list_of_filenames, site){
       participantTactileData$protocolName[participantTactileData$protocol==171 & participantTactileData$astim2amplitude==0] <- "Dual Staircase Amplitude Discrimination (up)"
       participantTactileData$protocolName[participantTactileData$protocol==171 & participantTactileData$astim2amplitude==200] <- "Dual Staircase Amplitude Discrimination (down)"
     }
-
-
-
-# unique(participantTactileData$protocolName)
-
-
-    # # Reaction time
-    #   # Simple
-    #   participantTactileData$protocolName[participantTactileData$protocol==801] <- "Simple Reaction Time"
-    #
-    #   # Choice
-    #   participantTactileData$protocolName[participantTactileData$protocol==800] <- "Choice Reaction Time"
-    #
-    # #Detection
-    #   # Static
-    #   participantTactileData$protocolName[participantTactileData$protocol==100 & participantTactileData$stim1amplitude==0] <- "Static Detection Threshold"
-    #   participantTactileData$protocolName[participantTactileData$protocol==900 & participantTactileData$stim1amplitude==0] <- "Static Detection Threshold"
-    #   participantTactileData$protocolName[participantTactileData$protocol==910 & participantTactileData$ISI==5000] <- "Static Detection Threshold"
-    #   participantTactileData$protocolName[participantTactileData$protocol==910 & participantTactileData$ISI==30] <- "Static Detection Threshold with Adaptation ISI 30"
-    #   participantTactileData$protocolName[participantTactileData$protocol==910 & participantTactileData$ISI==100] <- "Static Detection Threshold with Adaptation ISI 100"
-    #
-    #   # Dynamic
-    #   participantTactileData$protocolName[participantTactileData$protocol==713] <- "Dynamic Detection Threshold"
-    #
-    # #Discrimination
-    #   # Amplitude
-    #   participantTactileData$protocolName[participantTactileData$protocol==900 & participantTactileData$stim1amplitude==100] <- "Sequential Amplitude Discrimination"
-    #   participantTactileData$protocolName[participantTactileData$protocol==100 &  participantTactileData$stim1amplitude==100] <- "Sequential Amplitude Discrimination"
-    #   participantTactileData$protocolName[participantTactileData$protocol==900 & participantTactileData$stim2amplitude!=0] <- "Simultaneous Amplitude Discrimination"
-    #   participantTactileData$protocolName[participantTactileData$protocol==105] <- "Simultaneous Amplitude Discrimination"
-    #   participantTactileData$protocolName[participantTactileData$protocol==905 & participantTactileData$ISI==100] <- "Sequential Amplitude Discrimination" #Sequential amplitude discrimination for Calgary
-    #   participantTactileData$protocolName[participantTactileData$protocol==171 & participantTactileData$astim2amplitude==100] <- "Amplitude Discrimination with Single Site Adaptation"
-    #   participantTactileData$protocolName[participantTactileData$protocol==171 & participantTactileData$astim1amplitude==100] <- "Amplitude Discrimination with Dual Site Adaptation"
-    #   participantTactileData$protocolName[participantTactileData$protocol==171 & participantTactileData$astim2amplitude==200] <- "Dual Staircase Amplitude Discrimination (up)"
-    #   participantTactileData$protocolName[participantTactileData$protocol==171 & is.na(participantTactileData$protocolName)] <- "Dual Staircase Amplitude Discrimination (down)"
-    #
-    #   # Frequency
-    #   participantTactileData$protocolName[participantTactileData$protocol==925] <- "Sequential Frequency Discrimination"
-    #   participantTactileData$protocolName[participantTactileData$protocol==920] <- "Simultaneous Frequency Discrimination"
-    #
-    # #Duration
-    #   participantTactileData$protocolName[participantTactileData$protocol==350] <- "Duration Discrimination"
-    #   participantTactileData$protocolName[participantTactileData$protocol==950] <- "Duration Discrimination"
-    #
-    # #Judgement
-    #   # Order
-    #   participantTactileData$protocolName[participantTactileData$protocol==300] <- "Temporal Order Judgement"
-    #   participantTactileData$protocolName[participantTactileData$protocol==930] <- "Temporal Order Judgement"
-    #   participantTactileData$protocolName[participantTactileData$protocol==931] <- "Temporal Order Judgement with Carrier"
-
-
-  # # Section 1.5 -------------------------------------------------------------
-  # # Accounting for discrimination tasks not subtracting the comparison stimulus
-  #     #this issue is specific to the new format at some sites (i.e., University of Calgary)))
-  #     if(site == "University of Calgary"){
-  #       participantTactileData$value[grep("Amplitude Discrimination", participantTactileData$protocolName)] <- participantTactileData$value[grep("Amplitude Discrimination", participantTactileData$protocolName)]-200
-  #       participantTactileData$value[grep("Frequency Discrimination", participantTactileData$protocolName)] <- participantTactileData$value[grep("Frequency Discrimination", participantTactileData$protocolName)]-30
-  #     }
-  #     if(site %in% c("KKI","CCH","JHU")){
-  #       #Note to self, this is a temporary brute force fix for the problem that we have where the number of trials completed by protocol are NOT equal
-  #       #I will eventually need the code to recognize how many trials were completed within a given session, rather than assume it is exactly half of the total number of tirals completed
-  #       # allProtocolOutputs$sessions[allProtocolOutputs$protocolName=="Simultaneous Amplitude Discrimination"][25:52] <- 2
-  #
-  #       #The data collected from KKI, CCH and JHU has a peculiarity where the practice trials were saved as a protocol within themselves (for only SOME protocols), something that is not the case with data collected elsewhere
-  #       #The code below fixes the issue by assigning all protocols to have 3 practice trials, and 20 test trials (which is *currently* true)
-  #       participantTactileData$numberofPracticeTrials[is.na(participantTactileData$numberofPracticeTrials)] <- participantTactileData$numberofTestTrials[is.na(participantTactileData$numberofPracticeTrials)]
-  #       participantTactileData$numberofTestTrials <- 20
-  #     }
-
-  # # Section 1.6 ------------------------------------------------------------
-  # #Saving individual data csv files for each participant
-  #   currentDirectory <- getwd() #remember the current wd
-  #   setwd(outputDirectory) #setwd to the outputDirectory
-  #   write.csv(participantTactileData, file = paste0("BATD_extracted_", list_of_filenames[p],"_NF.csv")) #save the output of all the protocols for each participant as a csv
-  #   setwd(currentDirectory) #return to the currentDirectory
 
   # Section 1.7 -------------------------------------------------------------
   #Store the protocol outputs in the allParticipantsOutput list
@@ -451,10 +377,12 @@ for(p in 1:length(participants)){
 allParticipantsOutput_combined$run <- unlist(list_for_runs)
 
 #Changing variables to the right format
-allParticipantsOutput_combined <- data.frame(lapply(allParticipantsOutput_combined, as.character), stringsAsFactors=FALSE)
+allParticipantsOutput_combined <- suppressWarnings(data.frame(lapply(allParticipantsOutput_combined, as.character), stringsAsFactors=FALSE))
 allParticipantsOutput_combined[9:25] <- sapply(allParticipantsOutput_combined[9:25], as.numeric)
 allParticipantsOutput_combined[29:30] <- sapply(allParticipantsOutput_combined[29:30], as.numeric)
 allParticipantsOutput_combined[30] <- sapply(allParticipantsOutput_combined[30], as.numeric)
+allParticipantsOutput_combined$numberofPracticeTrials[is.na(allParticipantsOutput_combined$numberofPracticeTrials)] <- 0
+
 # Section 3 ---------------------------------------------------------------
 #Saving the combined dataframe
   # setwd(inputDirectory)
@@ -466,6 +394,8 @@ allParticipantsOutput_combined[30] <- sapply(allParticipantsOutput_combined[30],
   # print(paste0("Combined extracted data saved in:", combinedDirectory))
   # if(debugging=="on"){print("(Succesfully completed SECTION 3: Combined data saved")}
 allParticipantsOutput_combined$Site <- site
+
+
 
   return(allParticipantsOutput_combined)
 }
