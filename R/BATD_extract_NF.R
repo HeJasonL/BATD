@@ -19,12 +19,12 @@ BATD_extract_NF <- function(list_of_filenames, site){
 #Index - W.I.P
 
 # Debugging ---------------------------------------------------------------
-  debugging <- "on"
+  debugging <- "off"
   if(debugging=="on"){
     #if debugging has been set on, you will need to set the environment up
-    setwd(here("Raw", "New Format", "ARBA1")) #first, set the wd to where your raw data is contained
+    setwd(here("Raw", "New Format", "KKI")) #first, set the wd to where your raw data is contained
     list_of_filenames <- list.files(pattern = "-") #next create a list of that raw data
-    site <- "ARBA1" #specify the site at which this data was collected (make it "NA" if unsure)
+    site <- "KKI" #specify the site at which this data was collected (make it "NA" if unsure)
   }
 
 
@@ -258,7 +258,7 @@ BATD_extract_NF <- function(list_of_filenames, site){
     all_extracted_data <- as.data.frame(cbind(all_details, performance_details))
     protocol_output_list[[i]] <- all_extracted_data
 
-    print(paste('protocol', protocol, 'extracted'))
+    # print(paste('protocol', protocol, 'extracted'))
   }
 
   participantTactileData <- do.call(rbind.data.frame, protocol_output_list) #combine all the protocols for the current participant into a dataframe
@@ -309,7 +309,7 @@ BATD_extract_NF <- function(list_of_filenames, site){
 
     for(p in protocols_completed){
       data_for_current_protocol_number <- participantTactileData[participantTactileData$protocol==p,]
-      data_for_current_protocol_number$protocolName <- protocol_names$protocol_string_label[protocol_names$protocol_number==p]
+      data_for_current_protocol_number$protocolName <- protocol_names$protocol_string_label[protocol_names$protocol_number==p][1]
       list_of_labelled_protocols[[p]] <- data_for_current_protocol_number
     }
 
@@ -331,11 +331,16 @@ BATD_extract_NF <- function(list_of_filenames, site){
       participantTactileData$protocolName[participantTactileData$protocol==910 & participantTactileData$ISI==100] <- "Static Detection Threshold with Adaptation ISI 100"
     }
 
-    if(site == "ARBA1|ARBA2|ARBA3|ARBA4"){
-
+    if(site %in% c("ARBA1", "ARBA2", "ARBA3", "ARBA4")){
+      participantTactileData$protocolName[participantTactileData$protocol==100 & participantTactileData$stim1amplitude==0] <- "Static Detection Threshold"
+      participantTactileData$protocolName[participantTactileData$protocol==100 &  participantTactileData$stim1amplitude==100] <- "Sequential Amplitude Discrimination"
+      participantTactileData$protocolName[participantTactileData$protocol==171 & participantTactileData$astim2amplitude==0] <- "Dual Staircase Amplitude Discrimination (up)"
+      participantTactileData$protocolName[participantTactileData$protocol==171 & participantTactileData$astim2amplitude==200] <- "Dual Staircase Amplitude Discrimination (down)"
     }
 
 
+
+# unique(participantTactileData$protocolName)
 
 
     # # Reaction time
@@ -415,10 +420,6 @@ BATD_extract_NF <- function(list_of_filenames, site){
 
   allParticipantsOutput_combined <-  as.data.frame(data.table::rbindlist(allParticipantsOutput, fill = TRUE)) #combine the output into a unitary dataframe
 
-
-  unique(allParticipantsOutput_combined$protocolName)
-
-
 # Section 2 ---------------------------------------------------------------
 #Accounting for runs
   #Annotation pending
@@ -464,6 +465,7 @@ allParticipantsOutput_combined[30] <- sapply(allParticipantsOutput_combined[30],
   # setwd(inputDirectory)
   # print(paste0("Combined extracted data saved in:", combinedDirectory))
   # if(debugging=="on"){print("(Succesfully completed SECTION 3: Combined data saved")}
+allParticipantsOutput_combined$Site <- site
 
   return(allParticipantsOutput_combined)
 }
