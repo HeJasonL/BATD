@@ -143,6 +143,11 @@ BATD_analyze <- function(dataframe){
                          )){
         threshold <- threshold - 100 #remove the standard stimulus from threshold
       }
+      if(protocol %in% c("Simultaneous Frequency Discrimination",
+                         "Sequential Frequency Discrimination",
+      )){
+        threshold <- threshold - 30 #remove the standard stimulus from threshold
+      }
       if(protocol %in% c("Duration Discrimination")){
         threshold <- threshold - 500
       }
