@@ -19,8 +19,8 @@ BATD_plot_all <- function(extracted_Data){
   #DEBUGGING ----
   debugging <- "off"
   if(debugging=="on"){
-    setwd(here("POND Data", "ARBA1"))
-    extracted_Data <- ARBA1[ARBA1$id=="pond-0869",]
+    setwd(here("data"))
+    extracted_Data <-participant_data
 
   }
 

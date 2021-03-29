@@ -21,7 +21,7 @@ BATD_plot <- function(data){
   debugging <- "off"
   if(debugging=="on"){
     # print("Note: Debugging on")
-    # data <- sessionData_for_given_run
+    data <- sessionData_for_given_run
   }
 
   #Set themes and functions ----
@@ -83,7 +83,7 @@ BATD_plot <- function(data){
                             "Dual Staircase Amplitude Discrimination (down)",
                             "Amplitude Discrimination with Single Site Adaptation",
                             "Amplitude Discrimination with Dual Site Adaptation")){#NOTE TO SELF: ADD NOTES
-          Data$value <- Data$value - 100
+          Data$value <- as.numeric(Data$value) - 100
         }
 
         if(grepl("Duration Discrimination", completed)){#NOTE TO SELF: ADD NOTES
