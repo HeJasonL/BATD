@@ -21,7 +21,7 @@ BATD_analyze <- function(dataframe){
   debugging <- "off"
   if(debugging=="on"){
     print("Note: Debugging on")
-    dataframe <- ARBA1[ARBA1$id=="pond-0431",]
+    dataframe <- participant_data[participant_data$id=="spin-0057",]
   }
 
   '%ni%' <- Negate('%in%') #create the function for %not in%
@@ -144,7 +144,7 @@ BATD_analyze <- function(dataframe){
         threshold <- threshold - 100 #remove the standard stimulus from threshold
       }
       if(protocol %in% c("Simultaneous Frequency Discrimination",
-                         "Sequential Frequency Discrimination",
+                         "Sequential Frequency Discrimination"
       )){
         threshold <- threshold - 30 #remove the standard stimulus from threshold
       }
