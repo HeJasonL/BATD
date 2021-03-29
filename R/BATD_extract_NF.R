@@ -22,9 +22,9 @@ BATD_extract_NF <- function(list_of_filenames, site){
   debugging <- "off"
   if(debugging=="on"){
     #if debugging has been set on, you will need to set the environment up
-    setwd(here("Raw", "New Format", "KKI")) #first, set the wd to where your raw data is contained
-    list_of_filenames <- list.files(pattern = "-") #next create a list of that raw data
-    site <- "KKI" #specify the site at which this data was collected (make it "NA" if unsure)
+    # setwd(here("Raw", "New Format", "KKI")) #first, set the wd to where your raw data is contained
+    list_of_filenames <- list_of_data #next create a list of that raw data
+    site <- "SPIN" #specify the site at which this data was collected (make it "NA" if unsure)
   }
 
 
@@ -347,6 +347,7 @@ BATD_extract_NF <- function(list_of_filenames, site){
     if(site %in% c("SPIN")){
       participantTactileData$protocolName[participantTactileData$protocol==100 & participantTactileData$stim1amplitude==0] <- "Static Detection Threshold"
       participantTactileData$protocolName[participantTactileData$protocol==100 &  participantTactileData$stim1amplitude==100] <- "Sequential Amplitude Discrimination"
+      participantTactileData$protocolName[participantTactileData$protocol==171] <- "Dual Staircase Amplitude Discrimination (down)" #Reminder, need to figure out whether 171 is truly Dual Staircase Amp down
     }
 
   # Section 1.7 -------------------------------------------------------------
