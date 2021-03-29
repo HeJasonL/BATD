@@ -356,7 +356,7 @@ BATD_extract_NF <- function(list_of_filenames, site){
   }
 
   allParticipantsOutput_combined <-  as.data.frame(data.table::rbindlist(allParticipantsOutput, fill = TRUE)) #combine the output into a unitary dataframe
-
+  allParticipantsOutput_combined$protocol[is.na(allParticipantsOutput_combined$protocolName)]
 # Section 2 ---------------------------------------------------------------
 #Accounting for runs
   #Annotation pending
