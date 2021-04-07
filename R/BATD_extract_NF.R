@@ -95,7 +95,6 @@ BATD_extract_NF <- function(list_of_filenames, site){
   date_and_times$tag <- ifelse(abs(date_and_times$time_difference) > 1000, "start", NA)
   date_and_times$tag[1] <- "start"
 
-
   #For loop through the date_and_times and append session to them
   number_of_sessions <- sum(date_and_times$tag=="start", na.rm = TRUE) #identify the number of sessions
   row_where_session_starts <- grep("start", date_and_times$tag)
@@ -346,7 +345,7 @@ BATD_extract_NF <- function(list_of_filenames, site){
 
     if(site %in% c("SPIN")){
       participantTactileData$protocolName[participantTactileData$protocol==100 & participantTactileData$stim1amplitude==0] <- "Static Detection Threshold"
-      participantTactileData$protocolName[participantTactileData$protocol==100 &  participantTactileData$stim1amplitude==100] <- "Sequential Amplitude Discrimination"
+      participantTactileData$protocolName[participantTactileData$protocol==100 &  participantTactileData$stim1amplitude==100] <- "Simultaneous Amplitude Discrimination"
       participantTactileData$protocolName[participantTactileData$protocol==171] <- "Dual Staircase Amplitude Discrimination (down)" #Reminder, need to figure out whether 171 is truly Dual Staircase Amp down
     }
 
