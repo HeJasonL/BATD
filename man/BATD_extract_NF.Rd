@@ -4,7 +4,7 @@
 \alias{BATD_extract_NF}
 \title{BATD_extract_NF}
 \usage{
-BATD_extract_NF(list_of_filenames, Site)
+BATD_extract_NF(list_of_filenames, site)
 }
 \arguments{
 \item{list_of_filenames}{a list object containing the filenames of the .txt files containing participant performance from Brain Gauge}
