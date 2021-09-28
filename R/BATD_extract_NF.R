@@ -305,6 +305,12 @@ BATD_extract_NF <- function(list_of_filenames, site){
       url <- paste0("https://raw.githubusercontent.com/HeJasonL/BATD/master/Site%20specific%20protocols/",
                     site, "/", #folder name
                     site, "_protocol_names.csv") #file name
+
+    #If site is the SPIN site, read from this location
+    if(site %in% c("CARE")){
+      url <- paste0("https://raw.githubusercontent.com/HeJasonL/BATD/master/Site%20specific%20protocols/",
+                    site, "/", #folder name
+                    site, "_protocol_names.csv") #file name
     }
 
     protocol_names <- read.csv(url, header = TRUE)
