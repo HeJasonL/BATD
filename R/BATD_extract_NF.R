@@ -23,8 +23,8 @@ BATD_extract_NF <- function(list_of_filenames, site){
   if(debugging=="on"){
     #if debugging has been set on, you will need to set the environment up
     # setwd(here("Raw", "New Format", "KKI")) #first, set the wd to where your raw data is contained
-    list_of_filenames <- list_of_data #next create a list of that raw data
-    site <- "SPIN" #specify the site at which this data was collected (make it "NA" if unsure)
+    list_of_filenames <- CARE_raw_data #next create a list of that raw data
+    site <- "CARE" #specify the site at which this data was collected (make it "NA" if unsure)
   }
 
 

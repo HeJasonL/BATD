@@ -23,7 +23,7 @@ BATD_analyze_all <- function(dataframe) {
   debugging <- "off"
   if(debugging=="on"){
     print("Note: Debugging on")
-    dataframe <- oldFormat_rbinded
+    dataframe <- combined_lurie_data
   }
 
   dataframe <- dataframe[!is.na(dataframe$protocolName),] #do not run through protocols without names (WARNING)

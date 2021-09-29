@@ -21,7 +21,7 @@ BATD_analyze <- function(dataframe){
   debugging <- "off"
   if(debugging=="on"){
     print("Note: Debugging on")
-    dataframe <- participant_data[participant_data$id=="spin-0057",]
+    dataframe <- sessionData
   }
 
   '%ni%' <- Negate('%in%') #create the function for %not in%
@@ -55,8 +55,10 @@ BATD_analyze <- function(dataframe){
     dateTested <- as.character(dataframe$date[1])
     extractedBy <- as.character(dataframe$extractedBy[1])
     run <- r
+    site <- data$Site[1]
 
-    protocolDetails <- cbind(dateTested, extractedBy, run)
+
+    protocolDetails <- cbind(dateTested, extractedBy, site, run)
 
     ## SECTION 2 (Analyze each of the protocols completed identified in SECTION 1)----
 
@@ -77,7 +79,13 @@ BATD_analyze <- function(dataframe){
       sessionData$correctResponse <- as.numeric(as.character(sessionData$correctResponse)) #turn correctResponse to numeric
       sessionData$value <- as.numeric(as.character(sessionData$value)) #turn string variables into numeric
 
-      numberofPracticeTrials <- as.numeric(as.character(sessionData$numberofPracticeTrials[1])) + 1 #adding one so that the trials start AFTER the n of practice trials
+      numberofPracticeTrials <- as.numeric(as.character(sessionData$numberofPracticeTrials[1]))
+
+      #adding one so that the trials start AFTER the n of practice trials
+      if(numberofPracticeTrials > 1){
+        numberofPracticeTrials <- numberofPracticeTrials + 1
+      }
+
 
       #here we remove the practice trials if the n > 10, this is because some sites actually ran a whole protocol as a practice, rather than the first n-numnber of trials (usually 3)
       #If practice trials were ran as a whole protocol, thye are just treated as a protocol
