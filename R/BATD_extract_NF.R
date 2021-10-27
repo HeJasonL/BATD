@@ -16,20 +16,9 @@
 #' @export
 
 BATD_extract_NF <- function(list_of_filenames, site){
-#Index - W.I.P
-
-# Debugging ---------------------------------------------------------------
-  debugging <- "off"
-  if(debugging=="on"){
-    #if debugging has been set on, you will need to set the environment up
-    # setwd(here("Raw", "New Format", "KKI")) #first, set the wd to where your raw data is contained
-    list_of_filenames <- CARE_raw_data #next create a list of that raw data
-    site <- "CARE" #specify the site at which this data was collected (make it "NA" if unsure)
-  }
-
 
   #BATD Version:
-  Version <- c("BATD_V.1.6")
+  Version <- c("BATD_V.1.7")
   #Version 1.6. has made significant adjustments to the code, including:
   # . Streamlining of how sessions were accounted for (previously done in section 2, and based only on date)
   #  . Sessions now take into account date AND time, making it more sensitive. Sessions are counted as separate if they are 1000 seconds apart (~16 minutes )
@@ -45,7 +34,24 @@ BATD_extract_NF <- function(list_of_filenames, site){
   #Section 2 is used to make adjustments to the final dataset. Typically, these adjustments are integrated into Section 1 as I continue to update the script
   #Section 3 is used to save the combined data set in .csv file format
 
-# Setup -------------------------------------------------------------------
+  #Version 1.7 made signifciant changes to the labelling and annotating of the code
+  # . Sections now have underlines to split the document outline
+
+# Section 0 ---------------------------------------------------------------
+
+# __ 0.1 - Debugging ---------------------------------------------------------------
+  #debugging is used to check what within the BATD_extract_NF function is not working
+  #if debugging is set to "on", then you will be able to use whatever data/site arguments you want
+
+  debugging <- "off"
+  if(debugging=="on"){
+    #if debugging has been set on, you will need to set the environment up
+    # setwd(here("Raw", "New Format", "KKI")) #first, set the wd to where your raw data is contained
+    list_of_filenames <- CARE_raw_data #next create a list of that raw data
+    site <- "CARE" #specify the site at which this data was collected (make it "NA" if unsure)
+  }
+
+# __ 0.2 - Setup -------------------------------------------------------------------
   '%ni%' <- Negate('%in%') #create the function for %not in%
   inputDirectory <- getwd() #get the current wd
   dir.create("output", showWarnings = FALSE) #create a folder called "output" for the output
@@ -59,8 +65,10 @@ BATD_extract_NF <- function(list_of_filenames, site){
     setwd(inputDirectory) #set working directory to where all the Brain Gauge output files are saved
     output <- read.csv(list_of_filenames[p], header = FALSE) #read in the current participant's file (based on 'p')
     print(paste('now extracting details from file:', list_of_filenames[p]))
-  # Section 1.1 ------------------------------------------------------------
-  #General data cleaning prior to extraction
+
+# __ 1.1 - Cleaning dataframe -------------------------------------
+
+#General data cleaning prior to extraction
   #The output is read in as a two column dataframe, with columns V1 and V2
   #Column V1 contains all the 'information', followed by a ":', with the 'data' on the right side
   #Here, we are simply taking the first column and dividing the information and the data ...
@@ -71,7 +79,6 @@ BATD_extract_NF <- function(list_of_filenames, site){
   rownames(tempo) <- c() #clear the row numbers
   cleaned_output <- suppressWarnings(as.data.frame(tempo)) #turn the output into a dataframe
 
-  # Section 1.1 ------------------------------------------------------------
 #Determine the number of sessions and create a dataframe which keeps track of when participants started and ended their session
   #identify all the date and time stamps
   date_and_times <- cleaned_output[cleaned_output$V1=="date",] #look at all the unique date/time stamps
@@ -114,8 +121,8 @@ BATD_extract_NF <- function(list_of_filenames, site){
 
   date_and_times_dataframe <- dplyr::bind_rows(session_list)
 
+# __ 1.2 - Divide data -------------------------------------------
 
-  # Section 1.2 -------------------------------------------------------------
   #Now that the dataframe has been cleaned by section 1.1, we need to divide the output into its constituent protocols
   #Here, we identify a marker for where a protocol begins, and use this mark to break the dataframe up ...
   # ... storing each protocol in a list ('list_of_protocols')
@@ -131,7 +138,9 @@ BATD_extract_NF <- function(list_of_filenames, site){
   }
   list_of_protocols[[i]] <- cleaned_output[(paste(protocols[i])):nrow(cleaned_output),] #puts the last protocol into the list (for loop above cannot account for last protocol)
 
-  # Section 1.3 -------------------------------------------------------------
+
+# __ 1.3 - Extract data -------------------------------------------
+
   #Given that the protocols have been put into a list called "list_of_protocols", we can now ...
   # ... enter each of the protocols and extract the relevant information
   #This section is further divided into subsections, each which extract a 'group' of information
@@ -142,7 +151,8 @@ BATD_extract_NF <- function(list_of_filenames, site){
     current_protocol_for_current_participant <- list_of_protocols[[i]] #create a dataframe with the current protocol for the current participant
     rownames(current_protocol_for_current_participant) <- c() #clear all the row numbers for convenience
 
-    # Section 1.3.1 -----------------------------------------------------------
+    # ____ 1.3.1 - Participant Details -----------------------------------------------------------
+
     #Extract participant details
     id <- as.character(current_protocol_for_current_participant$V2[current_protocol_for_current_participant$V1=="number"])[1]
     race <- as.character(current_protocol_for_current_participant$V2[current_protocol_for_current_participant$V1=="race"])[1]
@@ -152,7 +162,7 @@ BATD_extract_NF <- function(list_of_filenames, site){
 
     participant_details <- cbind(id, race, gender, handedness, birthYear) #create a dataframe with all participant details
 
-    # Section 1.3.2 -----------------------------------------------------------
+    # ____ 1.3.2 - Session Details -----------------------------------------------------------
     #Extract session details
     timeProtocolStarted <-  paste0(substr(gsub("T","",(current_protocol_for_current_participant$V2[current_protocol_for_current_participant$V1=="date"][1])), 11,12),":", substr(gsub("T","",(current_protocol_for_current_participant$V3[current_protocol_for_current_participant$V1=="date"][1])), 1,2)) #what time did the current protocol start
 
@@ -168,7 +178,8 @@ BATD_extract_NF <- function(list_of_filenames, site){
     session <- date_and_times_dataframe$session[date_and_times_dataframe$date_and_time==date_times_formatted][1] #extract the session number on data_and_times_dataframe for this protocol
     session_details <- cbind(date, time, site, session)
 
-    # Section 1.3.3.1 ---------------------------------------------------------
+    # ____ 1.3.3 - Protocol Details ---------------------------------------------------------
+
     #Extract protocol details
     #Each protocol will have a protocol number, followed by details on how many practice/test trials there were ...
     # ... as well as the amplitude and duration of the stimuli
@@ -180,7 +191,8 @@ BATD_extract_NF <- function(list_of_filenames, site){
 
     protocol_details <- cbind(protocol, numberofPracticeTrials, numberofTestTrials, ISI, interval_between_adaptive_and_test)
 
-    # Section 1.3.3 -----------------------------------------------------------
+    # ____ 1.3.4 - Stimulus Details -----------------------------------------------------------
+
     #Extract stimulus details
     #The stimuli are divided into:
     #stim1 - the first stimulus
@@ -190,7 +202,6 @@ BATD_extract_NF <- function(list_of_filenames, site){
 
     #Each stimuli will have amplitude, frequency and duration
 
-    # Section 1.3.3.2 ---------------------------------------------------------
     # Stimulus characteristics
       #stim1
       stim1amplitude <- as.character(current_protocol_for_current_participant$V2[current_protocol_for_current_participant$V1=="amplitude"])[1]
@@ -217,8 +228,8 @@ BATD_extract_NF <- function(list_of_filenames, site){
                                         astim1amplitude, astim1frequency, astim1duration,
                                         astim2amplitude, astim2frequency, astim2duration)
 
-    # Section 1.3.3.3 ---------------------------------------------------------
-    #Extract participant performance details
+    # ____ 1.3.5 - Performance Details ---------------------------------------------------------
+
     #While the details extracted thus far are constant, the performance data is updated every trial
     #Below, we extract the trial-level data for the current protocol, for the current participant
     #Peformance data is split into:
@@ -236,17 +247,16 @@ BATD_extract_NF <- function(list_of_filenames, site){
 
     performance_details <- cbind(trialNumber, value, expected, response, correctResponse, responseTime)
 
-    # Section 1.3.3.4 ---------------------------------------------------------
+    # ____ 1.3.6 - Miscellaneous Details ---------------------------------------------------------
     #Store the miscellaneous information that is otherwise useful
     originalFilename <- list_of_filenames[p] #what was the original filename
     format <- "NF" # Format of data: OF = data collected with research grade cortical metrics stimulator, "NF" = data collected with brain gauge mice
-    extractedBy <- Version #What version of BATD was used to extract this participant's data
+    extractedBy <- Version #What version of BATD was used to extract this participant's data (stated at the very start of the code)
 
     miscellaneous_information <- cbind(originalFilename, format, extractedBy)
 
 
-    # Section 1.3.3.5 ---------------------------------------------------------
-    #Combine all the extracted details and save it in a list
+    # ____ 1.3.7 - Store Extracted Details ---------------------------------------------------------
 
     all_details <- cbind(participant_details,
                          session_details,
@@ -254,26 +264,42 @@ BATD_extract_NF <- function(list_of_filenames, site){
                          stimulus_characteristics,
                          miscellaneous_information)
 
-    all_details <- all_details[rep(seq_len(nrow(all_details)), each = nrow(performance_details)), ] #repeat all_details to make it have the same rows as performance_details (so they can be joined)
+    #repeat all_details to make it have the same rows as performance_details (so they can be joined)
+    all_details <- all_details[rep(seq_len(nrow(all_details)), each = nrow(performance_details)), ]
     all_extracted_data <- as.data.frame(cbind(all_details, performance_details))
     protocol_output_list[[i]] <- all_extracted_data
-
-    # print(paste('protocol', protocol, 'extracted'))
   }
 
-  participantTactileData <- do.call(rbind.data.frame, protocol_output_list) #combine all the protocols for the current participant into a dataframe
+# ___ 1.4 - Combine Extracted Protocol Details -------------------------------------------
+
+  participantTactileData <- do.call(rbind.data.frame, protocol_output_list)
 
   #Recreate the time and date variable and sort all the data by time and date
   participantTactileData$date_times_formatted <- paste(participantTactileData$date, participantTactileData$time)
   participantTactileData$date_times_formatted <- as.POSIXct(participantTactileData$date_times_formatted,format="%Y-%m-%d %H:%M:%S")
   participantTactileData <- participantTactileData[order(participantTactileData$date_times_formatted),]
+
   #Change correctResponse to a 0 or 1 numeric (currently its in true or false, I just want to standardise this between the old and new format, also string descriptions are not useful here)
     participantTactileData$correctResponse  <- as.character(participantTactileData$correctResponse)
     participantTactileData$correctResponse[participantTactileData$correctResponse=="true"] <- "1"
     participantTactileData$correctResponse[participantTactileData$correctResponse=="false"] <- "0"
 
 
-    # Section 1.4 -------------------------------------------------------------
+# ___ 1.5 - Label Protocols ----------------------------------------------
+#The function will only work with sites where the protocol values have known protocol labels
+#If the site argument provided in the function is not known to the developer, the code will exit prematurely
+
+    sites_with_labels <- c("KKI",
+                           "CCH",
+                           "ARBA1", "ARBA2", "ARBA3", "ARBA4",
+                           "SPIN",
+                           "CARE")
+
+    if(site %ni% sites_with_labels){
+      print("Warning: The 'site' argument provided is not a known site to the function, please contact Jason He : jasonhe93@gmail.com")
+      return()
+    }
+
     #Label protocols with names
     #There are subsections for RT protocols, Detection tasks, Discrimination tasks, and Judgment tasks
     # * Note that this is done in a specific order since sometimes protocols share numeric codes
@@ -357,16 +383,25 @@ BATD_extract_NF <- function(list_of_filenames, site){
       participantTactileData$protocolName[participantTactileData$protocol==171] <- "Dual Staircase Amplitude Discrimination (down)" #Reminder, need to figure out whether 171 is truly Dual Staircase Amp down
     }
 
-  # Section 1.7 -------------------------------------------------------------
-  #Store the protocol outputs in the allParticipantsOutput list
+    if(site %in% c("CARE")){
+      participantTactileData$protocolName[participantTactileData$protocol==100 & participantTactileData$stim1amplitude==0] <- "Static Detection Threshold"
+      participantTactileData$protocolName[participantTactileData$protocolName=="TBD"] <- "Simultaneous Amplitude Discrimination"
+
+    }
+
+# ___  1.6 - Store Labelled Protocols -------------------------------------------------------------
+
+    #Store the protocol outputs in the allParticipantsOutput list
     allParticipantsOutput[[p]] <- as.data.frame(participantTactileData)
   }
 
   allParticipantsOutput_combined <-  as.data.frame(data.table::rbindlist(allParticipantsOutput, fill = TRUE)) #combine the output into a unitary dataframe
   allParticipantsOutput_combined$protocol[is.na(allParticipantsOutput_combined$protocolName)]
+
 # Section 2 ---------------------------------------------------------------
-#Accounting for runs
   #Annotation pending
+# __ 2.1 - Accounting For Runs ----------------------------------------
+
 list_for_runs <- list()
 participants <- unique(allParticipantsOutput_combined$id)
 for(p in 1:length(participants)){
@@ -394,26 +429,23 @@ for(p in 1:length(participants)){
 
 allParticipantsOutput_combined$run <- unlist(list_for_runs)
 
-#Changing variables to the right format
+
+# __ 2.2 - Column Formatting  ----------------------------------------------------------------
+#Changing variables to the right format (numeric)
 allParticipantsOutput_combined <- suppressWarnings(data.frame(lapply(allParticipantsOutput_combined, as.character), stringsAsFactors=FALSE))
-allParticipantsOutput_combined[9:25] <- sapply(allParticipantsOutput_combined[9:25], as.numeric)
-allParticipantsOutput_combined[29:30] <- sapply(allParticipantsOutput_combined[29:30], as.numeric)
-allParticipantsOutput_combined[30] <- sapply(allParticipantsOutput_combined[30], as.numeric)
+allParticipantsOutput_combined[9:25] <- suppressWarnings(sapply(allParticipantsOutput_combined[9:25], as.numeric))
+allParticipantsOutput_combined[29:30] <- suppressWarnings(sapply(allParticipantsOutput_combined[29:30], as.numeric))
+allParticipantsOutput_combined[30] <- suppressWarnings(sapply(allParticipantsOutput_combined[30], as.numeric))
 allParticipantsOutput_combined$numberofPracticeTrials[is.na(allParticipantsOutput_combined$numberofPracticeTrials)] <- 0
 
 # Section 3 ---------------------------------------------------------------
-#Saving the combined dataframe
-  # setwd(inputDirectory)
-  # dir.create("combined", showWarnings = FALSE) #set the wd to the folder where you wish to save the combined data to
-  # combinedDirectory <- paste0(inputDirectory,"/combined") #automatically creates a folder in that directory named 'output' - if you already have a folder named output, ignore this code.
-  # setwd(combinedDirectory)
-  # write.csv(combined_participant_data_after_accounting_for_runs, file = "BATD_extracted_combined.csv")
-  # setwd(inputDirectory)
-  # print(paste0("Combined extracted data saved in:", combinedDirectory))
-  # if(debugging=="on"){print("(Succesfully completed SECTION 3: Combined data saved")}
-allParticipantsOutput_combined$Site <- site
 
+# __ 3.1 - Labelling and Saving data -----------------------------------------------------------------
+#annotation pending
 
+allParticipantsOutput_combined$Site <- site #create a site column (site is provided by an argument in the function)
 
-  return(allParticipantsOutput_combined)
+print("All participant data extracted succesfully!")
+
+return(allParticipantsOutput_combined) #return the combined data
 }
