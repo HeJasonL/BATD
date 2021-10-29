@@ -47,8 +47,10 @@ BATD_extract_NF <- function(list_of_filenames, site){
   if(debugging=="on"){
     #if debugging has been set on, you will need to set the environment up
     # setwd(here("Raw", "New Format", "KKI")) #first, set the wd to where your raw data is contained
-    list_of_filenames <- CARE_raw_data #next create a list of that raw data
-    site <- "CARE" #specify the site at which this data was collected (make it "NA" if unsure)
+
+     list_of_filenames <- STES_files
+
+    site <- "STES" #specify the site at which this data was collected (make it "NA" if unsure)
   }
 
 # __ 0.2 - Setup -------------------------------------------------------------------
@@ -289,11 +291,16 @@ BATD_extract_NF <- function(list_of_filenames, site){
 #The function will only work with sites where the protocol values have known protocol labels
 #If the site argument provided in the function is not known to the developer, the code will exit prematurely
 
-    sites_with_labels <- c("KKI",
-                           "CCH",
-                           "ARBA1", "ARBA2", "ARBA3", "ARBA4",
-                           "SPIN",
-                           "CARE")
+    sites_with_labels <- c(
+      "KKI",
+      "CCH",
+      "ARBA1",
+      "ARBA2",
+      "ARBA3",
+      "ARBA4",
+      "SPIN",
+      "CARE"
+      )
 
     if(site %ni% sites_with_labels){
       print("Warning: The 'site' argument provided is not a known site to the function, please contact Jason He : jasonhe93@gmail.com")
