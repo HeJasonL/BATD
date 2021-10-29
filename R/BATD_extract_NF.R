@@ -47,9 +47,7 @@ BATD_extract_NF <- function(list_of_filenames, site){
   if(debugging=="on"){
     #if debugging has been set on, you will need to set the environment up
     # setwd(here("Raw", "New Format", "KKI")) #first, set the wd to where your raw data is contained
-
-     list_of_filenames <- STES_files
-
+    list_of_filenames <- STES_files
     site <- "STES" #specify the site at which this data was collected (make it "NA" if unsure)
   }
 
@@ -299,7 +297,8 @@ BATD_extract_NF <- function(list_of_filenames, site){
       "ARBA3",
       "ARBA4",
       "SPIN",
-      "CARE"
+      "CARE",
+      "STES"
       )
 
     if(site %ni% sites_with_labels){
@@ -343,6 +342,13 @@ BATD_extract_NF <- function(list_of_filenames, site){
 
     #If site is the SPIN site, read from this location
     if(site %in% c("CARE")){
+      url <- paste0("https://raw.githubusercontent.com/HeJasonL/BATD/master/Site%20specific%20protocols/",
+                    site, "/", #folder name
+                    site, "_protocol_names.csv") #file name
+    }
+
+    #If site is the STES site, read from this location
+    if(site %in% c("STES")){
       url <- paste0("https://raw.githubusercontent.com/HeJasonL/BATD/master/Site%20specific%20protocols/",
                     site, "/", #folder name
                     site, "_protocol_names.csv") #file name
