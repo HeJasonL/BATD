@@ -17,7 +17,7 @@
 BATD_analyze_all <- function(dataframe) {
 
   ##Version
-  Version <- c("BATD_V.1.6")
+  Version <- c("BATD_V.1.7")
 
   #DEBUGGING ----
   debugging <- "off"

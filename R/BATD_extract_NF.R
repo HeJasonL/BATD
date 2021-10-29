@@ -49,6 +49,7 @@ BATD_extract_NF <- function(list_of_filenames, site){
     # setwd(here("Raw", "New Format", "KKI")) #first, set the wd to where your raw data is contained
     list_of_filenames <- STES_files
     site <- "STES" #specify the site at which this data was collected (make it "NA" if unsure)
+    p <- 1
   }
 
 # __ 0.2 - Setup -------------------------------------------------------------------
@@ -399,8 +400,12 @@ BATD_extract_NF <- function(list_of_filenames, site){
     if(site %in% c("CARE")){
       participantTactileData$protocolName[participantTactileData$protocol==100 & participantTactileData$stim1amplitude==0] <- "Static Detection Threshold"
       participantTactileData$protocolName[participantTactileData$protocolName=="TBD"] <- "Simultaneous Amplitude Discrimination"
-
     }
+
+    if(site %in% c("STES")){
+      participantTactileData$protocolName[participantTactileData$protocol==713 & participantTactileData$stim2amplitude==30] <- "Dynamic Detection Threshold (down)"
+    }
+
 
 # ___  1.6 - Store Labelled Protocols -------------------------------------------------------------
 
