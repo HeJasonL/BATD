@@ -77,20 +77,30 @@ BATD_plot <- function(data){
       if(completed %ni% c("Simple Reaction Time","Choice Reaction Time")){
         #Value and response plots ----
 
-        if(completed %in% c("Simultaneous Amplitude Discrimination",
-                            "Sequential Amplitude Discrimination",
-                            "Dual Staircase Amplitude Discrimination (up)",
-                            "Dual Staircase Amplitude Discrimination (down)",
-                            "Amplitude Discrimination with Single Site Adaptation",
-                            "Amplitude Discrimination with Dual Site Adaptation")){#NOTE TO SELF: ADD NOTES
+        if(completed %in% c(
+          "Simultaneous Amplitude Discrimination",
+          "Sequential Amplitude Challenge",
+          "SSA 2 Block",
+          "Dual Staircase Amplitude Discrimination (up)",
+          "Dual Staircase Amplitude Discrimination (down)",
+          "Amplitude Discrimination with Single Site Adaptation",
+          "Sequential Amplitude Discrimination",
+          "Amplitude Discrimination with Dual Site Adaptation")){#NOTE TO SELF: ADD NOTES
           Data$value <- as.numeric(Data$value) - 100
         }
 
         if(grepl("Duration Discrimination", completed)){#NOTE TO SELF: ADD NOTES
           Data$value <- Data$value - 500
-          }
+        }
 
-        value_plot <- ggplot2::ggplot(Data, ggplot2::aes(x=trialNumber, y=value, color = as.factor(correctResponse))) +
+        if(completed %in% c(
+          "Simultaneous Frequency Discrimination",
+          "Sequential Frequency Discrimination"
+        )){#NOTE TO SELF: ADD NOTES
+          Data$value <- as.numeric(Data$value) - 30
+        }
+
+        value_plot <- ggplot2::ggplot(Data, ggplot2::aes(x=trialNumber, y=as.numeric(value), color = as.factor(correctResponse))) +
           ggplot2::geom_point(size =3) + ggplot2::scale_colour_manual(values = cols) + theme_JH +
           ggplot2::labs(y = "Value", x = "Trial Number") + #note that this needs to be estimated
           ggplot2::geom_hline(yintercept = Analyzed_data$threshold) #Note that this needs to be estimated as threshold
