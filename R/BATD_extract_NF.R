@@ -46,8 +46,6 @@ BATD_extract_NF <- function(list_of_filenames, site){
 
   debugging <- "off"
   if(debugging=="on"){
-    #if debugging has been set on, you will need to set the environment up
-    # setwd(here("Raw", "New Format", "KKI")) #first, set the wd to where your raw data is contained
     list_of_filenames <- tactile_files
     site <- "EU-AIMS" #specify the site at which this data was collected (make it "NA" if unsure)
     p <- 1
@@ -57,9 +55,9 @@ BATD_extract_NF <- function(list_of_filenames, site){
   '%ni%' <- Negate('%in%') #create the function for %not in%
   inputDirectory <- getwd() #get the current wd
 
-  # if(hasArg(site) == FALSE){
-  #   site <- "NA"
-  # }
+  if(hasArg(site) == FALSE){
+    site <- "NA"
+  }
 
 # Section 1 ---------------------------------------------------------------
   #Entering the outer loop

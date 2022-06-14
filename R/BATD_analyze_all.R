@@ -65,13 +65,6 @@ BATD_analyze_all <- function(dataframe) {
   all <- plyr::rbind.fill(participants_outPut_list)
   all <- all[!is.na(all$id), ]
 
-  # all <- all[, c(1:7, #id:extractedBy
-  #                53, #analyzedBy
-  #                52, #session
-  #                8, #run
-  #                9:51)]
-
-
   return(all)
 
 }

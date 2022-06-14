@@ -23,7 +23,6 @@ Version <- c("BATD_V.1.5")
   #DEBUGGING ----
   debugging <- "off"
   if(debugging=="on"){
-    setwd("~/Dropbox/Documents/Data repository/Tactile Data/Raw/Old Format/JHU") #setwd to old format data from JHU
     list_of_filenames <- list.files(pattern = "2002-2012")
     Site <- ("JHU")
     getwd()
@@ -235,9 +234,6 @@ Version <- c("BATD_V.1.5")
     if(debugging=="on"){print("SECTION 4: COMPLETED")}
 
     ## SECTION 5 Save the extracted file for each individual participant in the output directory -----
-    # currentDirectory <- getwd()  #remember the current wd
-    # setwd(outputDirectory)  #setwd to the outputDirectory
-    # write.csv(allProtocolOutputs, file = paste0("BATD_extracted_", list_of_filenames[p], "_OF.csv"))  #save the output of all the protocols for each participant as a csv
 
     print(paste("Extracted participant:", list_of_filenames[p]))
 
