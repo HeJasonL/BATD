@@ -19,6 +19,7 @@ BATD_extract_NF <- function(list_of_filenames, site){
 
   #BATD Version:
   Version <- c("BATD_V.1.7")
+
   #Version 1.6. has made significant adjustments to the code, including:
   # . Streamlining of how sessions were accounted for (previously done in section 2, and based only on date)
   #  . Sessions now take into account date AND time, making it more sensitive. Sessions are counted as separate if they are 1000 seconds apart (~16 minutes )
@@ -43,7 +44,7 @@ BATD_extract_NF <- function(list_of_filenames, site){
   #debugging is used to check what within the BATD_extract_NF function is not working
   #if debugging is set to "on", then you will be able to use whatever data/site arguments you want
 
-  debugging <- "on"
+  debugging <- "off"
   if(debugging=="on"){
     #if debugging has been set on, you will need to set the environment up
     # setwd(here("Raw", "New Format", "KKI")) #first, set the wd to where your raw data is contained
@@ -55,8 +56,10 @@ BATD_extract_NF <- function(list_of_filenames, site){
 # __ 0.2 - Setup -------------------------------------------------------------------
   '%ni%' <- Negate('%in%') #create the function for %not in%
   inputDirectory <- getwd() #get the current wd
-  dir.create("output", showWarnings = FALSE) #create a folder called "output" for the output
-  outputDirectory <- paste0(inputDirectory,"/output") #create a variable which denotes the output directory
+
+  # if(hasArg(site) == FALSE){
+  #   site <- "NA"
+  # }
 
 # Section 1 ---------------------------------------------------------------
   #Entering the outer loop
@@ -122,6 +125,10 @@ BATD_extract_NF <- function(list_of_filenames, site){
 
   date_and_times_dataframe <- dplyr::bind_rows(session_list)
 
+  if(debugging == "on"){
+    print("Section 1.1 completed")
+  }
+
 # __ 1.2 - Divide data -------------------------------------------
 
   #Now that the dataframe has been cleaned by section 1.1, we need to divide the output into its constituent protocols
@@ -139,6 +146,9 @@ BATD_extract_NF <- function(list_of_filenames, site){
   }
   list_of_protocols[[i]] <- cleaned_output[(paste(protocols[i])):nrow(cleaned_output),] #puts the last protocol into the list (for loop above cannot account for last protocol)
 
+  if(debugging == "on"){
+    print("Section 1.2 completed")
+  }
 
 # __ 1.3 - Extract data -------------------------------------------
 
@@ -271,6 +281,10 @@ BATD_extract_NF <- function(list_of_filenames, site){
     protocol_output_list[[i]] <- all_extracted_data
   }
 
+  if(debugging == "on"){
+    print("Section 1.3 completed")
+  }
+
 # ___ 1.4 - Combine Extracted Protocol Details -------------------------------------------
 
   participantTactileData <- do.call(rbind.data.frame, protocol_output_list)
@@ -287,6 +301,11 @@ BATD_extract_NF <- function(list_of_filenames, site){
 
     unique(participantTactileData$protocol)
 
+
+    if(debugging == "on"){
+      print("Section 1.4 completed")
+    }
+
 # ___ 1.5 - Label Protocols ----------------------------------------------
 #The function will only work with sites where the protocol values have known protocol labels
 #If the site argument provided in the function is not known to the developer, the code will exit prematurely
@@ -301,8 +320,7 @@ BATD_extract_NF <- function(list_of_filenames, site){
       "SPIN",
       "CARE",
       "STES",
-      "EU-AIMS",
-      "NA"
+      "EU-AIMS"
       )
 
     if(site %ni% sites_with_labels){
@@ -352,6 +370,20 @@ BATD_extract_NF <- function(list_of_filenames, site){
 
     #If site is the STES site, read from this location
     if(site %in% c("STES")){
+      url <- paste0("https://raw.githubusercontent.com/HeJasonL/BATD/master/Site%20specific%20protocols/",
+                    site, "/", #folder name
+                    site, "_protocol_names.csv") #file name
+    }
+
+    #If site is the EU-AIMS site, read from this location
+    if(site %in% c("EU-AIMS")){
+      url <- paste0("https://raw.githubusercontent.com/HeJasonL/BATD/master/Site%20specific%20protocols/",
+                    site, "/", #folder name
+                    site, "_protocol_names.csv") #file name
+    }
+
+    #If site is the NA site, read from this location
+    if(site %in% c("EU-AIMS")){
       url <- paste0("https://raw.githubusercontent.com/HeJasonL/BATD/master/Site%20specific%20protocols/",
                     site, "/", #folder name
                     site, "_protocol_names.csv") #file name
@@ -408,6 +440,25 @@ BATD_extract_NF <- function(list_of_filenames, site){
       participantTactileData$protocolName[participantTactileData$protocol==713 & participantTactileData$stim2amplitude==30] <- "Dynamic Detection Threshold (down)"
     }
 
+    if(site == "EU-AIMS"){
+      participantTactileData$protocolName[participantTactileData$protocol==171 & participantTactileData$astim2amplitude==100 & participantTactileData$astim1amplitude==0] <- "Amplitude Discrimination with Single Site Adaptation"
+      participantTactileData$protocolName[participantTactileData$protocol==171 & participantTactileData$astim1amplitude==100] <- "Amplitude Discrimination with Dual Site Adaptation"
+      participantTactileData$protocolName[participantTactileData$protocol==910 & participantTactileData$interval_between_adaptive_and_test==30] <- "Static Detection Threshold with Adaptation ISI 30"
+      participantTactileData$protocolName[participantTactileData$protocol==910 & participantTactileData$interval_between_adaptive_and_test==100] <- "Static Detection Threshold with Adaptation ISI 100"
+    }
+
+    if(site == "NA"){
+      participantTactileData$protocolName[participantTactileData$protocol==171 & participantTactileData$astim2amplitude==100 & participantTactileData$astim1amplitude==0] <- "Amplitude Discrimination with Single Site Adaptation"
+      participantTactileData$protocolName[participantTactileData$protocol==171 & participantTactileData$astim1amplitude==100] <- "Amplitude Discrimination with Dual Site Adaptation"
+      participantTactileData$protocolName[participantTactileData$protocol==910 & participantTactileData$interval_between_adaptive_and_test==30] <- "Static Detection Threshold with Adaptation ISI 30"
+      participantTactileData$protocolName[participantTactileData$protocol==910 & participantTactileData$interval_between_adaptive_and_test==100] <- "Static Detection Threshold with Adaptation ISI 100"
+    }
+
+
+    if(debugging == "on"){
+      print("Section 1.5 completed")
+    }
+
 
 # ___  1.6 - Store Labelled Protocols -------------------------------------------------------------
 
@@ -415,8 +466,12 @@ BATD_extract_NF <- function(list_of_filenames, site){
     allParticipantsOutput[[p]] <- as.data.frame(participantTactileData)
   }
 
+  if(debugging == "on"){
+    print("Section 1.6 completed")
+  }
+
   allParticipantsOutput_combined <-  as.data.frame(data.table::rbindlist(allParticipantsOutput, fill = TRUE)) #combine the output into a unitary dataframe
-  allParticipantsOutput_combined$protocol[is.na(allParticipantsOutput_combined$protocolName)]
+  #allParticipantsOutput_combined$protocol[is.na(allParticipantsOutput_combined$protocolName)]
 
 # Section 2 ---------------------------------------------------------------
   #Annotation pending
@@ -449,6 +504,10 @@ for(p in 1:length(participants)){
 
 allParticipantsOutput_combined$run <- unlist(list_for_runs)
 
+if(debugging == "on"){
+  print("Section 2.1 completed")
+}
+
 
 # __ 2.2 - Column Formatting  ----------------------------------------------------------------
 #Changing variables to the right format (numeric)
@@ -458,6 +517,10 @@ allParticipantsOutput_combined[29:30] <- suppressWarnings(sapply(allParticipants
 allParticipantsOutput_combined[30] <- suppressWarnings(sapply(allParticipantsOutput_combined[30], as.numeric))
 allParticipantsOutput_combined$numberofPracticeTrials[is.na(allParticipantsOutput_combined$numberofPracticeTrials)] <- 0
 
+if(debugging == "on"){
+  print("Section 2.2 completed")
+}
+
 # Section 3 ---------------------------------------------------------------
 
 # __ 3.1 - Labelling and Saving data -----------------------------------------------------------------
@@ -465,7 +528,14 @@ allParticipantsOutput_combined$numberofPracticeTrials[is.na(allParticipantsOutpu
 
 allParticipantsOutput_combined$Site <- site #create a site column (site is provided by an argument in the function)
 
+if(debugging == "on"){
+  print("Section 3.1 completed")
+}
+
 print("All participant data extracted succesfully!")
+
+
 
 return(allParticipantsOutput_combined) #return the combined data
 }
+
