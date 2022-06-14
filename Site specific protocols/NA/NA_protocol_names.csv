@@ -1,0 +1,18 @@
+﻿protocol_number,protocol_string_label
+801,Simple Reaction Time
+800,Choice Reaction Time
+900,Static Detection Threshold
+713,Dynamic Detection Threshold
+925,Sequential Frequency Discrimination
+920,Simultaneous Frequency Discrimination
+950,Duration Discrimination
+930,Temporal Order Judgement
+931,Temporal Order Judgement with Carrier
+910,Static Detection Threshold with adaptive stimulus
+351,NA
+109,NA
+100,Amplitude Discrimination
+300,Temporal Order Judgement
+301,Temporal Order Judgement with Carrier
+171,Simultaneous Amplitude Discrimination
+105,Simultaneous Amplitude Discrimination

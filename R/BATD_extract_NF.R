@@ -43,12 +43,12 @@ BATD_extract_NF <- function(list_of_filenames, site){
   #debugging is used to check what within the BATD_extract_NF function is not working
   #if debugging is set to "on", then you will be able to use whatever data/site arguments you want
 
-  debugging <- "off"
+  debugging <- "on"
   if(debugging=="on"){
     #if debugging has been set on, you will need to set the environment up
     # setwd(here("Raw", "New Format", "KKI")) #first, set the wd to where your raw data is contained
-    list_of_filenames <- STES_files
-    site <- "STES" #specify the site at which this data was collected (make it "NA" if unsure)
+    list_of_filenames <- tactile_files
+    site <- "EU-AIMS" #specify the site at which this data was collected (make it "NA" if unsure)
     p <- 1
   }
 
@@ -285,6 +285,7 @@ BATD_extract_NF <- function(list_of_filenames, site){
     participantTactileData$correctResponse[participantTactileData$correctResponse=="true"] <- "1"
     participantTactileData$correctResponse[participantTactileData$correctResponse=="false"] <- "0"
 
+    unique(participantTactileData$protocol)
 
 # ___ 1.5 - Label Protocols ----------------------------------------------
 #The function will only work with sites where the protocol values have known protocol labels
@@ -299,12 +300,13 @@ BATD_extract_NF <- function(list_of_filenames, site){
       "ARBA4",
       "SPIN",
       "CARE",
-      "STES"
+      "STES",
+      "EU-AIMS",
+      "NA"
       )
 
     if(site %ni% sites_with_labels){
       print("Warning: The 'site' argument provided is not a known site to the function, please contact Jason He : jasonhe93@gmail.com")
-      return()
     }
 
     #Label protocols with names
