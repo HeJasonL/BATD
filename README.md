@@ -1,6 +1,6 @@
 # Batch analysis of tactile data (BATD)
 
-BATD is code was written by Jason He while he was at Johns Hopkins University and King's College London under the supervision of Dr. Nicolaas Puts. The code is intended to take the raw text files produced by Brain Gauage, an app-based program used to administer vibrotactile psychophysical protocols (see [link](https://www.corticalmetrics.com/)). The functions contained in this package require working knowledge of R programming. I recognise the code can be unclear at times (though it is heavily annotated). If you need help, please feel free to email me at jasonhe93@gmail.com and I will endeavour to solve your problem. 
+BATD is a package written by Jason He while he was at Johns Hopkins University and King's College London under the supervision of Dr. Nicolaas Puts. The code is intended to take the raw text files produced by Brain Gauage, an app-based program used to administer vibrotactile psychophysical protocols (see [link](https://www.corticalmetrics.com/)). The functions contained in this package require working knowledge of R programming. I recognise the code can be unclear at times (though it is heavily annotated). If you need help, please feel free to email me at jasonhe93@gmail.com and I will endeavour to solve your problem. 
 
 BATD contains three key functions:
 
