@@ -36,7 +36,7 @@ BATD_extract_NF <- function(list_of_filenames, site){
   #Section 3 is used to save the combined data set in .csv file format
 
   #Version 1.7 made signifciant changes to the labelling and annotating of the code
-  # . Sections now have underlines to split the document outline
+  # . Sections now have underlines to split the document outlineå
 
 # Section 0 ---------------------------------------------------------------
 
