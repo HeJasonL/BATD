@@ -46,8 +46,8 @@ BATD_extract_NF <- function(list_of_filenames, site){
 
   debugging <- "off"
   if(debugging=="on"){
-    list_of_filenames <- tactile_files
-    site <- "EU-AIMS" #specify the site at which this data was collected (make it "NA" if unsure)
+    list_of_filenames <- files
+    site <- "UCLA" #specify the site at which this data was collected (make it "NA" if unsure)
     p <- 1
   }
 
@@ -318,7 +318,8 @@ BATD_extract_NF <- function(list_of_filenames, site){
       "SPIN",
       "CARE",
       "STES",
-      "EU-AIMS"
+      "EU-AIMS",
+      "UCLA"
       )
 
     if(site %ni% sites_with_labels){
@@ -380,8 +381,15 @@ BATD_extract_NF <- function(list_of_filenames, site){
                     site, "_protocol_names.csv") #file name
     }
 
+    #If site is the UCLA site, read from this location
+    if(site %in% c("UCLA")){
+      url <- paste0("https://raw.githubusercontent.com/HeJasonL/BATD/master/Site%20specific%20protocols/",
+                    site, "/", #folder name
+                    site, "_protocol_names.csv") #file name
+    }
+
     #If site is the NA site, read from this location
-    if(site %in% c("EU-AIMS")){
+    if(site %in% c("NA")){
       url <- paste0("https://raw.githubusercontent.com/HeJasonL/BATD/master/Site%20specific%20protocols/",
                     site, "/", #folder name
                     site, "_protocol_names.csv") #file name
