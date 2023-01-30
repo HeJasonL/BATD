@@ -47,8 +47,8 @@ BATD_extract_NF <- function(list_of_filenames, site){
   debugging <- "off"
   if(debugging=="on"){
     list_of_filenames <- files
-    site <- "UCLA" #specify the site at which this data was collected (make it "NA" if unsure)
-    p <- 1
+    site <- "KKI" #specify the site at which this data was collected (make it "NA" if unsure)
+    p <- 4
   }
 
 # __ 0.2 - Setup -------------------------------------------------------------------
@@ -411,6 +411,7 @@ BATD_extract_NF <- function(list_of_filenames, site){
 
     #Adjust for site customization
     if(site == "KKI"){
+      participantTactileData$protocolName[participantTactileData$protocol==900 & participantTactileData$stim2amplitude==200] <- "Amplitude Discrimination"
       participantTactileData$protocolName[participantTactileData$protocol==171 & participantTactileData$astim2amplitude==100 & participantTactileData$astim1amplitude==0] <- "Amplitude Discrimination with Single Site Adaptation"
       participantTactileData$protocolName[participantTactileData$protocol==171 & participantTactileData$astim1amplitude==100] <- "Amplitude Discrimination with Dual Site Adaptation"
       participantTactileData$protocolName[participantTactileData$protocol==910 & participantTactileData$interval_between_adaptive_and_test==30] <- "Static Detection Threshold with Adaptation ISI 30"
