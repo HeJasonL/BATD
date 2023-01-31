@@ -21,7 +21,7 @@ BATD_analyze <- function(dataframe){
   debugging <- "off"
   if(debugging=="on"){
     print("Note: Debugging on")
-    dataframe <- extracted_participants_NJI[extracted_participants_NJI$id=="stes-1006",]
+    dataframe <- temp[temp$id=="asd2-76t1",]
   }
 
 
@@ -40,6 +40,28 @@ BATD_analyze <- function(dataframe){
     data <- dataframe[dataframe$run==r,] #Subset to the current run
     protocolsCompleted <- as.character(unique(data$protocolName)) #identify the number of protocols completed
     protocolsCompleted <- protocolsCompleted[!is.na(protocolsCompleted)] #legacy: remove any NAs (haven't tested without this line yet)
+
+    #At UCLA, and potentially other sites in the future, participants completed a SMAD protocol followed by adaptation trials
+    #Note that this solution is less than optimal. It might make more sense to implement this at the extraction phase in the future
+    if("Simultaneous Amplitude Discrimination followed by adaptation" %in% protocolsCompleted){
+      temp <- data[data$protocolName=="Simultaneous Amplitude Discrimination followed by adaptation",] #create a df by subsetting to the relevant protocol (901)
+      trial_number_ends <- temp$trialNumber[temp$response=="null",] #response is null when a protocol ends, get the trial number of when response is null
+
+      #subset out the first and second protocols
+      first_protocol <- data[data$protocolName=="Simultaneous Amplitude Discrimination followed by adaptation",][data[data$protocolName=="Simultaneous Amplitude Discrimination followed by adaptation",]$trialNumber %in% c(1:trial_number_ends[1]),] #subset out the first protocol
+      second_protocol <- data[data$protocolName=="Simultaneous Amplitude Discrimination followed by adaptation",][!data[data$protocolName=="Simultaneous Amplitude Discrimination followed by adaptation",]$trialNumber %in% c(1:trial_number_ends[1]),] #subset out the second protocol
+
+      #replace the names of the first and second protocols
+      first_protocol$protocolName <- "Simultaneous Amplitude Discrimination"
+      second_protocol$protocolName <- "Simultaneous Amplitude Discrimination with adaptation"
+
+      #replace the first and second protocols in "data" with the ammended subsetted dfs with new names
+      data[data$protocolName=="Simultaneous Amplitude Discrimination followed by adaptation",][data[data$protocolName=="Simultaneous Amplitude Discrimination followed by adaptation",]$trialNumber %in% c(1:trial_number_ends[1]),] <- first_protocol
+      data[data$protocolName=="Simultaneous Amplitude Discrimination followed by adaptation",][!data[data$protocolName=="Simultaneous Amplitude Discrimination followed by adaptation",]$trialNumber %in% c(1:trial_number_ends[1]),] <- second_protocol
+
+      protocolsCompleted <- protocolsCompleted[!protocolsCompleted %in% c("Simultaneous Amplitude Discrimination followed by adaptation")] #remove the names of the original dual protocol
+      protocolsCompleted <- c(protocolsCompleted, "Simultaneous Amplitude Discrimination", "Simultaneous Amplitude Discrimination with adaptation") #append the names of the new separated protocols
+    }
 
     ## SECTION 2 (extract the participant and protocol details) ----
 
@@ -90,7 +112,7 @@ BATD_analyze <- function(dataframe){
       }
 
       #here we remove the practice trials if the n > 10, this is because some sites actually ran a whole protocol as a practice, rather than the first number of trials (usually 3)
-      #If practice trials were ran as a whole protocol, thye are just treated as a protocol
+      #If practice trials were ran as a whole protocol, they are just treated as a protocol
       if(numberofPracticeTrials < 9){
         sessionData <- sessionData[numberofPracticeTrials:nrow(sessionData),] #remove practice trials
         sessionData$trialNumber <- 1:nrow(sessionData) #reset trial numbers
@@ -158,7 +180,8 @@ BATD_analyze <- function(dataframe){
                          "Dual Staircase Amplitude Discrimination (down)",
                          "Amplitude Discrimination with Single Site Adaptation",
                          "Amplitude Discrimination with Dual Site Adaptation",
-                         "Sequential Amplitude Challenge"
+                         "Sequential Amplitude Challenge",
+                         "Simultaneous Amplitude Discrimination with adaptation"
                          )){
         threshold <- threshold - 100 #remove the standard stimulus from threshold
       }
@@ -255,7 +278,8 @@ BATD_analyze <- function(dataframe){
                                                                                                                       ifelse(protocol=="Duration Discrimination", "_DD",
                                                                                                                              ifelse(protocol=="Dynamic Detection Threshold (up)", "_DDTup",
                                                                                                                                     ifelse(protocol=="Dynamic Detection Threshold (down)", "_DDTdown",
-                                                                                                                                           ifelse(protocol=="Sequential Amplitude Challenge", "_SQAD",NA)))))))))))))))))))))
+                                                                                                                                           ifelse(protocol=="Sequential Amplitude Challenge", "_SQAD",
+                                                                                                                                                  ifelse(protocol=="Simultaneous Amplitude Discrimination with adaptation", "_SMADadp", NA))))))))))))))))))))))
       colnames(outPut) <- paste0(colnames(outPut), tag)
 
 
