@@ -21,13 +21,13 @@ BATD_analyze <- function(dataframe){
   debugging <- "off"
   if(debugging=="on"){
     print("Note: Debugging on")
-    dataframe <- temp[temp$id=="asd2-76t1",]
+    dataframe <- temp2
   }
 
 
 # Setup -------------------------------------------------------------------
 
-  '%ni%' <- Negate('%in%') #create the function for %not in%
+  '%ni%' <- Negate('%in%') #create the function for %ni% (not in)
   library(dplyr) #for some reason I can't call 'lead' or 'lag' without reading in the dplyr library
 
   dataframe <- dataframe #redundant code but useful for debugging (ignore)
@@ -40,28 +40,6 @@ BATD_analyze <- function(dataframe){
     data <- dataframe[dataframe$run==r,] #Subset to the current run
     protocolsCompleted <- as.character(unique(data$protocolName)) #identify the number of protocols completed
     protocolsCompleted <- protocolsCompleted[!is.na(protocolsCompleted)] #legacy: remove any NAs (haven't tested without this line yet)
-
-    #At UCLA, and potentially other sites in the future, participants completed a SMAD protocol followed by adaptation trials
-    #Note that this solution is less than optimal. It might make more sense to implement this at the extraction phase in the future
-    if("Simultaneous Amplitude Discrimination followed by adaptation" %in% protocolsCompleted){
-      temp <- data[data$protocolName=="Simultaneous Amplitude Discrimination followed by adaptation",] #create a df by subsetting to the relevant protocol (901)
-      trial_number_ends <- temp$trialNumber[temp$response=="null",] #response is null when a protocol ends, get the trial number of when response is null
-
-      #subset out the first and second protocols
-      first_protocol <- data[data$protocolName=="Simultaneous Amplitude Discrimination followed by adaptation",][data[data$protocolName=="Simultaneous Amplitude Discrimination followed by adaptation",]$trialNumber %in% c(1:trial_number_ends[1]),] #subset out the first protocol
-      second_protocol <- data[data$protocolName=="Simultaneous Amplitude Discrimination followed by adaptation",][!data[data$protocolName=="Simultaneous Amplitude Discrimination followed by adaptation",]$trialNumber %in% c(1:trial_number_ends[1]),] #subset out the second protocol
-
-      #replace the names of the first and second protocols
-      first_protocol$protocolName <- "Simultaneous Amplitude Discrimination"
-      second_protocol$protocolName <- "Simultaneous Amplitude Discrimination with adaptation"
-
-      #replace the first and second protocols in "data" with the ammended subsetted dfs with new names
-      data[data$protocolName=="Simultaneous Amplitude Discrimination followed by adaptation",][data[data$protocolName=="Simultaneous Amplitude Discrimination followed by adaptation",]$trialNumber %in% c(1:trial_number_ends[1]),] <- first_protocol
-      data[data$protocolName=="Simultaneous Amplitude Discrimination followed by adaptation",][!data[data$protocolName=="Simultaneous Amplitude Discrimination followed by adaptation",]$trialNumber %in% c(1:trial_number_ends[1]),] <- second_protocol
-
-      protocolsCompleted <- protocolsCompleted[!protocolsCompleted %in% c("Simultaneous Amplitude Discrimination followed by adaptation")] #remove the names of the original dual protocol
-      protocolsCompleted <- c(protocolsCompleted, "Simultaneous Amplitude Discrimination", "Simultaneous Amplitude Discrimination with adaptation") #append the names of the new separated protocols
-    }
 
     ## SECTION 2 (extract the participant and protocol details) ----
 
@@ -79,7 +57,7 @@ BATD_analyze <- function(dataframe){
 # ___ 1.2 Protocol Details --------------------------------------------------------
 
     dateTested <- as.character(dataframe$date[1])
-    extractedBy <- as.character(dataframe$extractedBy[1])
+    extractedBy <- Version
     run <- r
     site <- data$Site[1]
 
@@ -170,7 +148,7 @@ BATD_analyze <- function(dataframe){
         "Dynamic Detection Threshold (down)"
       )) {
         sessionData <- sessionData_for_thresholds
-        threshold <- mean(sessionData$value[sessionData$correctResponse == 1])
+        threshold <- mean(sessionData$value[sessionData$correctResponse == 1]) #mean of hte correct responses
       }
 
       #Else, if it is an amplitude discrimination protocol
@@ -304,5 +282,5 @@ BATD_analyze <- function(dataframe){
 
   participant_output <- plyr::rbind.fill(list_of_protocols_by_run)
 
-    return(participant_output)
+  return(participant_output)
 }

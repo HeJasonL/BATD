@@ -46,18 +46,21 @@ BATD_extract_NF <- function(list_of_filenames, site){
 
   debugging <- "off"
   if(debugging=="on"){
-    list_of_filenames <- files
-    site <- "KKI" #specify the site at which this data was collected (make it "NA" if unsure)
-    p <- 4
+    list_of_filenames <- files[2]
+    site <- "UCLA" #specify the site at which this data was collected (make it "NA" if unsure)
+    #p <- 4
   }
 
 # __ 0.2 - Setup -------------------------------------------------------------------
   '%ni%' <- Negate('%in%') #create the function for %not in%
   inputDirectory <- getwd() #get the current wd
 
+  #WARNING: This if statement below needs to be commented out when debugging
   if(hasArg(site) == FALSE){
     site <- "NA"
   }
+
+
 
 # Section 1 ---------------------------------------------------------------
   #Entering the outer loop
@@ -452,6 +455,38 @@ BATD_extract_NF <- function(list_of_filenames, site){
       participantTactileData$protocolName[participantTactileData$protocol==171 & participantTactileData$astim1amplitude==100] <- "Amplitude Discrimination with Dual Site Adaptation"
       participantTactileData$protocolName[participantTactileData$protocol==910 & participantTactileData$interval_between_adaptive_and_test==30] <- "Static Detection Threshold with Adaptation ISI 30"
       participantTactileData$protocolName[participantTactileData$protocol==910 & participantTactileData$interval_between_adaptive_and_test==100] <- "Static Detection Threshold with Adaptation ISI 100"
+    }
+
+    if(site == "UCLA"){
+      #UCLA has novel protocols that aren't implemented elsewhere. First, protocol 713 (dynamic detection threshold) is presented in two sets of 14 trials, the first 14 trials are DDT down, and the second 14 trials are DDT up (to be confirmed by Nick)
+      #What we want to do here is take the first 14 and label them specifically as down, and the second 14 and label them specifically as up
+
+      if(713 %in% unique(participantTactileData$protocol) & length(participantTactileData$protocolName[participantTactileData$protocol==713]) > 14){
+        participantTactileData$protocolName[participantTactileData$protocol==713] <- c(rep("Dynamic Detection Threshold (up)", 14), rep("Dynamic Detection Threshold (down)", 14))
+      }
+
+      #At UCLA, and potentially other sites in the future, participants completed a SMAD protocol followed by adaptation trials
+      #Note that this solution is less than optimal. It might make more sense to implement this at the extraction phase in the future
+      if("Simultaneous Amplitude Discrimination followed by adaptation" %in% unique(participantTactileData$protocolName)){
+        temp <- participantTactileData[participantTactileData$protocolName=="Simultaneous Amplitude Discrimination followed by adaptation",] #create a df by subsetting to the relevant protocol (901)
+        trial_number_ends <- temp$trialNumber[temp$response=="null"] #response is null when a protocol ends, get the trial number of when response is null
+
+        #subset out the first and second protocols
+        first_protocol <- participantTactileData[participantTactileData$protocolName=="Simultaneous Amplitude Discrimination followed by adaptation",][participantTactileData[participantTactileData$protocolName=="Simultaneous Amplitude Discrimination followed by adaptation",]$trialNumber %in% c(1:trial_number_ends[1]),] #subset out the first protocol
+        second_protocol <- participantTactileData[participantTactileData$protocolName=="Simultaneous Amplitude Discrimination followed by adaptation",][!participantTactileData[participantTactileData$protocolName=="Simultaneous Amplitude Discrimination followed by adaptation",]$trialNumber %in% c(1:trial_number_ends[1]),] #subset out the second protocol
+
+        #replace the names of the first and second protocols
+        first_protocol$protocolName <- "Simultaneous Amplitude Discrimination"
+        second_protocol$protocolName <- "Simultaneous Amplitude Discrimination with adaptation"
+
+        #replace the first and second protocols in "participantTactileData" with the ammended subsetted dfs with new names
+        participantTactileData[participantTactileData$protocolName=="Simultaneous Amplitude Discrimination followed by adaptation",][participantTactileData[participantTactileData$protocolName=="Simultaneous Amplitude Discrimination followed by adaptation",]$trialNumber %in% c(1:trial_number_ends[1]),] <- first_protocol
+        participantTactileData[participantTactileData$protocolName=="Simultaneous Amplitude Discrimination followed by adaptation",][!participantTactileData[participantTactileData$protocolName=="Simultaneous Amplitude Discrimination followed by adaptation",]$trialNumber %in% c(1:trial_number_ends[1]),] <- second_protocol
+
+        #protocolsCompleted <- protocolsCompleted[!protocolsCompleted %in% c("Simultaneous Amplitude Discrimination followed by adaptation")] #remove the names of the original dual protocol
+        #protocolsCompleted <- c(protocolsCompleted, "Simultaneous Amplitude Discrimination", "Simultaneous Amplitude Discrimination with adaptation") #append the names of the new separated protocols
+      }
+
     }
 
     if(site == "NA"){
