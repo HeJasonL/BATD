@@ -360,8 +360,10 @@ BATD_extract_NF <- function(list_of_filenames, site){
 # Section 2 ---------------------------------------------------------------
 #Accounting for runs
   #Annotation pending
-list_for_runs <- list()
+
 participants <- unique(allParticipantsOutput_combined$id)
+run_output_p <- data.frame() #set up empty dataframe
+  
 for(p in 1:length(participants)){
   current_p <- allParticipantsOutput_combined[allParticipantsOutput_combined$id==participants[p],]
   sessions <- unique(current_p$session)
@@ -380,12 +382,13 @@ for(p in 1:length(participants)){
         t_repeated <- rep(1, times = nrow(current_t)) #otherwise, just repeat the value 1 by nrow of the current trial
       }
 
-      list_for_runs <- append(list_for_runs, t_repeated)
+      current_p[current_p$time == times[t], "run"] <- t_repeated #add the repeats to current_p for each unique timepoint in a new column called "run"
       }
     }
+  run_output_p <- rbind(run_output_p, current_p) #bind all the participant dataframes together
   }
 
-allParticipantsOutput_combined$run <- unlist(list_for_runs)
+allParticipantsOutput_combined <- run_output_p
 
 #Changing variables to the right format
 allParticipantsOutput_combined <- suppressWarnings(data.frame(lapply(allParticipantsOutput_combined, as.character), stringsAsFactors=FALSE))
