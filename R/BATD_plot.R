@@ -90,7 +90,7 @@ BATD_plot <- function(data){
         }
 
         if(grepl("Duration Discrimination", completed)){#NOTE TO SELF: ADD NOTES
-          Data$value <- Data$value - 500
+          Data$value <- as.numeric(Data$value) - 500
         }
 
         if(completed %in% c(
