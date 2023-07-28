@@ -450,7 +450,16 @@ BATD_extract_NF <- function(list_of_filenames, site){
       participantTactileData$protocolName[participantTactileData$protocol==713 & participantTactileData$stim2amplitude==30] <- "Dynamic Detection Threshold (down)"
     }
 
+    #EU-AIMS and UCLA have two different DDT protocols. First, protocol 713 (dynamic detection threshold) is presented in two sets of 14 trials, the first 14 trials are DDT down, and the second 14 trials are DDT up (to be confirmed by Nick)
+    #What we want to do here is take the first 14 and label them specifically as down, and the second 14 and label them specifically as up
+    
     if(site == "EU-AIMS"){
+      
+      if(713 %in% unique(participantTactileData$protocol) & length(participantTactileData$protocolName[participantTactileData$protocol==713]) > 14){
+        participantTactileData$protocolName[participantTactileData$protocol==713] <- c(rep("Dynamic Detection Threshold (up)", 14), rep("Dynamic Detection Threshold (down)", 14))
+      }
+      
+      participantTactileData$protocolName[participantTactileData$protocol==900 & participantTactileData$stim2amplitude==200] <- "Amplitude Discrimination Threshold without Adaptation"
       participantTactileData$protocolName[participantTactileData$protocol==171 & participantTactileData$astim2amplitude==100 & participantTactileData$astim1amplitude==0] <- "Amplitude Discrimination with Single Site Adaptation"
       participantTactileData$protocolName[participantTactileData$protocol==171 & participantTactileData$astim1amplitude==100] <- "Amplitude Discrimination with Dual Site Adaptation"
       participantTactileData$protocolName[participantTactileData$protocol==910 & participantTactileData$interval_between_adaptive_and_test==30] <- "Static Detection Threshold with Adaptation ISI 30"
@@ -458,8 +467,6 @@ BATD_extract_NF <- function(list_of_filenames, site){
     }
 
     if(site == "UCLA"){
-      #UCLA has novel protocols that aren't implemented elsewhere. First, protocol 713 (dynamic detection threshold) is presented in two sets of 14 trials, the first 14 trials are DDT down, and the second 14 trials are DDT up (to be confirmed by Nick)
-      #What we want to do here is take the first 14 and label them specifically as down, and the second 14 and label them specifically as up
 
       if(713 %in% unique(participantTactileData$protocol) & length(participantTactileData$protocolName[participantTactileData$protocol==713]) > 14){
         participantTactileData$protocolName[participantTactileData$protocol==713] <- c(rep("Dynamic Detection Threshold (up)", 14), rep("Dynamic Detection Threshold (down)", 14))
