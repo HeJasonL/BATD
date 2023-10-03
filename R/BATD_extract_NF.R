@@ -464,6 +464,8 @@ BATD_extract_NF <- function(list_of_filenames, site){
       participantTactileData$protocolName[participantTactileData$protocol==171 & participantTactileData$astim1amplitude==100] <- "Amplitude Discrimination with Dual Site Adaptation"
       participantTactileData$protocolName[participantTactileData$protocol==910 & participantTactileData$interval_between_adaptive_and_test==30] <- "Static Detection Threshold with Adaptation ISI 30"
       participantTactileData$protocolName[participantTactileData$protocol==910 & participantTactileData$interval_between_adaptive_and_test==100] <- "Static Detection Threshold with Adaptation ISI 100"
+      participantTactileData$protocolName[participantTactileData$protocol==171 & participantTactileData$astim2amplitude==0] <- "Dual Staircase Amplitude Discrimination (up)"
+      participantTactileData$protocolName[participantTactileData$protocol==171 & participantTactileData$astim2amplitude==200] <- "Dual Staircase Amplitude Discrimination (down)"
     }
 
     if(site == "UCLA"){
