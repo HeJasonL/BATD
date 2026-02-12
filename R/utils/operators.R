@@ -11,7 +11,6 @@
 #' @examples
 #' c(1, 2, 3) %ni% c(2, 4)
 #'
-#' @keywords internal
 #' @export
 
 '%ni%' <- function(x, y) {
