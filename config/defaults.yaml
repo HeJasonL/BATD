@@ -1,0 +1,70 @@
+# BATD Default Configuration
+# Version: 1.0
+# Global defaults and analysis parameters
+# Last Updated: 2024-01-15
+
+# Analysis parameters
+analysis:
+  # Time threshold for identifying separate sessions (in hours)
+  session_gap_threshold: 24
+  
+  # Minimum number of trials required for valid protocol
+  min_trials_threshold: 5
+  
+  # Data validation settings
+  validation:
+    require_demographics: true
+    require_timestamp: true
+    allow_missing_values: false
+    auto_fill_practice_trials: true
+    default_practice_trials: 0
+
+# Extraction settings
+extraction:
+  # Format detection confidence threshold (0-1)
+  min_confidence_threshold: 0.7
+  
+  # Default site if not specified
+  default_site: "NA"
+  
+  # Maximum number of lines to read for format detection
+  detection_sample_size: 100
+
+# Output settings
+output:
+  # Default output directory
+  output_dir: null
+  
+  # Include quality metrics in output
+  include_quality_metrics: true
+  
+  # Include raw data in output
+  include_raw_data: false
+
+# Plotting defaults
+plot:
+  # Theme for ggplot2 figures
+  theme: "classic"
+  
+  # Figure quality (dpi)
+  dpi: 300
+  
+  # Default figure size (in inches)
+  fig_width: 7
+  fig_height: 5
+  
+  # Color scheme
+  colors:
+    protocol: "viridis"
+    session: "Set1"
+
+# Logging
+logging:
+  # Enable detailed logging
+  verbose: false
+  
+  # Log file path (null = no log file)
+  log_file: null
+  
+  # Log level (DEBUG, INFO, WARNING, ERROR)
+  log_level: "INFO"

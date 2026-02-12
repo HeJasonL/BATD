@@ -2,6 +2,7 @@
 % Please edit documentation in R/BATD.R
 \docType{package}
 \name{BATD}
+\alias{BATD-package}
 \alias{BATD}
 \title{Batch analysis of tactile data 'BATD' package}
 \description{

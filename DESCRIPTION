@@ -1,13 +1,27 @@
 Package: BATD
 Type: Package
 Title: Batch Analysis of Vibrotactile Data derived from Cortical Metrics Stimulators
-Version: 1.4.0
+Version: 1.5.0
 Author: Jason L. He
-Maintainer: The package maintainer <jasonhe93@gmail.com>
-Description: The scripts contained within this packages are used to analyze data recorded by Cortical Metrics software. 
-    The scripts for the initial extraction are entitled BATD_extract_XX, with "XX" being either NF, referring to data collected from the CM4(?) or OF, referring to data collected from the CM5. Once data has been extracted, the data can then be analyzed using BATD_analyze or BATD_analyze_all. BATD analyze is used to analyze single participants, whereas BATD_analyze_all is used to batch analyze multiple participants. The data can also be plotted using many functions from the ggplot package, using the functions BATD_plot and BATD_plot_all. BATD_analyze and BATD_analyze_all, BATD_plot is used for single participants, whereas BATD_plot_all is used for multiple participants.
-    Further description of how to use these functions can be accessed by placing a question mark prior to the function e.g., ?BATD_analyze
+Maintainer: Jason L. He <jasonhe93@gmail.com>
+Description: The scripts contained within this package are used to analyze data recorded by Cortical Metrics software. 
+    The scripts for the initial extraction are entitled BATD_extract_XX, with "XX" being either NF, referring to data collected from the newer Brain Gauge format, or OF, referring to data collected from the older Research Edition format. 
+    A unified BATD_extract() function provides automatic format detection and routing.
+    Once data has been extracted, the data can then be analyzed using BATD_analyze or BATD_analyze_all. BATD_analyze is used to analyze single participants, whereas BATD_analyze_all is used to batch analyze multiple participants. 
+    The data can also be plotted using BATD_plot and BATD_plot_all, with BATD_plot for single participants and BATD_plot_all for multiple participants.
+    Further description of how to use these functions can be accessed by placing a question mark prior to the function, e.g., ?BATD_analyze.
+    Version 1.5.0 introduces modular architecture with shared helpers, format auto-detection, and comprehensive testing.
+Imports:
+    dplyr,
+    stringr,
+    ggplot2,
+    ggpubr,
+    data.table,
+    plyr,
+    yaml
+Suggests:
+    testthat
 License: NA
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 7.1.1
+RoxygenNote: 7.3.3

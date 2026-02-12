@@ -1,0 +1,142 @@
+# BATD Site Protocols Configuration
+# Version: 1.0
+# This file defines site-specific protocol information and parameters
+# Last Updated: 2024-01-15
+
+sites:
+  KKI:
+    name: Kennedy Krieger Institute
+    location: Baltimore, MD
+    contact: null
+    protocols:
+      - id: 100
+        name: Static Detection Threshold
+        description: Measures the minimum stimulus amplitude needed to detect vibration
+        parameters:
+          num_test_trials: 20
+          num_practice_trials: 5
+          
+      - id: 171
+        name: Amplitude Discrimination
+        description: Compares perception of two stimuli with different amplitudes
+        parameters:
+          num_test_trials: 20
+          num_practice_trials: 5
+          
+      - id: 900
+        name: Amplitude Discrimination
+        description: Alternative amplitude discrimination protocol
+        parameters:
+          num_test_trials: 30
+          
+      - id: 910
+        name: Static Detection Threshold with Adaptation
+        description: Detection threshold with pre-stimulation
+        parameters:
+          num_test_trials: 20
+
+  UCLA:
+    name: University of California, Los Angeles
+    location: Los Angeles, CA
+    contact: null
+    protocols:
+      - id: 100
+        name: Static Detection Threshold
+        parameters:
+          num_test_trials: 20
+          
+      - id: 713
+        name: Dynamic Detection Threshold
+        description: Detection threshold with time-varying stimulation
+        parameters:
+          num_test_trials: 28
+          
+      - id: 900
+        name: Simultaneous Amplitude Discrimination
+        parameters:
+          num_test_trials: 30
+          
+      - id: 901
+        name: Simultaneous Amplitude Discrimination with Adaptation
+        parameters:
+          num_test_trials: 40
+
+  CCH:
+    name: Cincinnati Children's Hospital
+    location: Cincinnati, OH
+    contact: null
+    protocols:
+      - id: 100
+        name: Static Detection Threshold
+        
+      - id: 171
+        name: Amplitude Discrimination with Adaptation
+
+  SPIN:
+    name: Sensory Processing in Neurodevelopment
+    location: null
+    contact: null
+    protocols:
+      - id: 100
+        name: Static Detection Threshold or Simultaneous Amplitude Discrimination
+        
+      - id: 171
+        name: Dual Staircase Amplitude Discrimination
+
+  CARE:
+    name: Consortium for ADHD and Resilience Examination
+    location: null
+    contact: null
+    protocols:
+      - id: 100
+        name: Static Detection Threshold or Simultaneous Amplitude Discrimination
+
+  STES:
+    name: Sensory Testing and Environmental Sensitivity
+    location: null
+    contact: null
+    protocols:
+      - id: 713
+        name: Dynamic Detection Threshold
+
+  EU-AIMS:
+    name: European Autism Interventions - A Multicentre Study
+    location: Europe
+    contact: null
+    protocols:
+      - id: 100
+        name: Static Detection Threshold
+        
+      - id: 171
+        name: Amplitude Discrimination with Adaptation
+        
+      - id: 713
+        name: Dynamic Detection Threshold
+        
+      - id: 900
+        name: Amplitude Discrimination
+
+  ARBA:
+    name: ARBA Sites
+    location: Multiple
+    contact: null
+    protocols:
+      - id: 100
+        name: Static Detection Threshold or Sequential Amplitude Discrimination
+        
+      - id: 171
+        name: Dual Staircase Amplitude Discrimination
+
+  NA:
+    name: Unknown/Default Site
+    location: null
+    contact: null
+    protocols:
+      - id: 100
+        name: Static Detection Threshold
+        
+      - id: 171
+        name: Amplitude Discrimination with Adaptation
+        
+      - id: 910
+        name: Static Detection Threshold with Adaptation
